@@ -1,8 +1,9 @@
 developer name: Chandra Shekhar Bansal
 developer email: chandrashekharbansal.2006@gmail.com
 assisted by: DeepSeek
-current file version: 1.0.0
+current file version: 1.0.1
 version 1.0.0: Initial Docker Compose orchestration for Bharat Railway Booking System.
+version 1.0.1: Update backend image to eclipse-temurin:21-jre (Java 21 per v5.1 spec).
 
 version: "3.9"
 
@@ -117,7 +118,7 @@ services:
       - ${DOCKER_NETWORK}
 
   bharat-railway-backend:
-    image: openjdk:17-slim
+    image: eclipse-temurin:21-jre
     container_name: bharat-railway-backend
     restart: unless-stopped
     depends_on:

@@ -1,7 +1,7 @@
 # developer name: Chandra Shekhar Bansal
 # developer email: chandrashekharbansal.2006@gmail.com
 # assisted by: DeepSeek
-# current file version: 1.0.7
+# current file version: 1.0.8
 # version 1.0.0: Initial Docker Compose orchestration for Bharat Railway Booking System.
 # version 1.0.1: Update backend image to eclipse-temurin:21-jre (Java 21 per v5.1 spec).
 # version 1.0.2: Add health checks, backend command placeholder, shared log volumes, and Kafka external listener.
@@ -10,6 +10,7 @@
 # version 1.0.5: Fix Kafka image tag from latest to 3.9.
 # version 1.0.6: Fix PgBouncer image tag from latest to 1.24.
 # version 1.0.7: Replace Bitnami Kafka with Confluent Kafka (free image), update env format.
+# version 1.0.8: Replace Bitnami PgBouncer with edoburu/pgbouncer (free image), update env format.
 
 version: "3.9"
 
@@ -35,15 +36,17 @@ services:
       - ${DOCKER_NETWORK}
 
   bharat-railway-pgbouncer:
-    image: bitnami/pgbouncer:1.24
+    image: edoburu/pgbouncer:latest
     container_name: bharat-railway-pgbouncer
     restart: unless-stopped
     environment:
-      PGBOUNCER_DATABASE: ${POSTGRES_DB}
-      POSTGRESQL_USERNAME: ${POSTGRES_USER}
-      POSTGRESQL_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRESQL_HOST: bharat-railway-postgres
-      POSTGRESQL_PORT: 5432
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_HOST: bharat-railway-postgres
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB}
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: 100
     ports:
       - "${HOST_IP}:${PGBOUNCER_HOST_PORT}:6432"
     depends_on:

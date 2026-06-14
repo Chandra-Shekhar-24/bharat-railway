@@ -1,10 +1,11 @@
 developer name: Chandra Shekhar Bansal
 developer email: chandrashekharbansal.2006@gmail.com
 assisted by: DeepSeek
-current file version: 1.0.2
+current file version: 1.0.3
 version 1.0.0: Initial Docker Compose orchestration for Bharat Railway Booking System.
 version 1.0.1: Update backend image to eclipse-temurin:21-jre (Java 21 per v5.1 spec).
 version 1.0.2: Add health checks, backend command placeholder, shared log volumes, and Kafka external listener.
+version 1.0.3: Replace hardcoded Kafka IP and external port with environment variables.
 
 version: "3.9"
 
@@ -66,16 +67,16 @@ services:
     container_name: bharat-railway-kafka
     restart: unless-stopped
     environment:
-      KAFKA_CFG_NODE_ID: 1
+      KAFKA_CFG_NODE_ID: ${KAFKA_NODE_ID}
       KAFKA_CFG_PROCESS_ROLES: broker,controller
       KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@bharat-railway-kafka:9093
-      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,EXTERNAL://:59092,CONTROLLER://:9093
-      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://bharat-railway-kafka:9092,EXTERNAL://100.114.229.47:59092
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,EXTERNAL://:${KAFKA_EXTERNAL_HOST_PORT},CONTROLLER://:9093
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://bharat-railway-kafka:9092,EXTERNAL://${HOST_IP}:${KAFKA_EXTERNAL_HOST_PORT}
       KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
     ports:
       - "${HOST_IP}:${KAFKA_HOST_PORT}:9092"
-      - "${HOST_IP}:59092:59092"
+      - "${HOST_IP}:${KAFKA_EXTERNAL_HOST_PORT}:${KAFKA_EXTERNAL_HOST_PORT}"
     healthcheck:
       test: ["CMD-SHELL", "kafka-topics.sh --bootstrap-server localhost:9092 --list"]
       interval: 15s

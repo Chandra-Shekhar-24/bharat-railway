@@ -1,11 +1,12 @@
-developer name: Chandra Shekhar Bansal
-developer email: chandrashekharbansal.2006@gmail.com
-assisted by: DeepSeek
-current file version: 1.0.3
-version 1.0.0: Initial Docker Compose orchestration for Bharat Railway Booking System.
-version 1.0.1: Update backend image to eclipse-temurin:21-jre (Java 21 per v5.1 spec).
-version 1.0.2: Add health checks, backend command placeholder, shared log volumes, and Kafka external listener.
-version 1.0.3: Replace hardcoded Kafka IP and external port with environment variables.
+# developer name: Chandra Shekhar Bansal
+# developer email: chandrashekharbansal.2006@gmail.com
+# assisted by: DeepSeek
+# current file version: 1.0.4
+# version 1.0.0: Initial Docker Compose orchestration for Bharat Railway Booking System.
+# version 1.0.1: Update backend image to eclipse-temurin:21-jre (Java 21 per v5.1 spec).
+# version 1.0.2: Add health checks, backend command placeholder, shared log volumes, and Kafka external listener.
+# version 1.0.3: Replace hardcoded Kafka IP and external port with environment variables.
+# version 1.0.4: Convert header to YAML comments for Docker Compose compatibility.
 
 version: "3.9"
 

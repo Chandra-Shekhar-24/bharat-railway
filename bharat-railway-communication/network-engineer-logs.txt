@@ -363,3 +363,24 @@ My Action Required:
 
 Status: PENDING
 ================================================================================
+
+================================================================================
+ENTRY #15 - Container Status Re-verified
+================================================================================
+Date: 2026-06-16
+From: Network Engineer (Chandra Shekhar Bansal)
+To: Project Manager (Koushal Jha)
+Subject: Container status clarification - Loki and Promtail
+
+Action Taken:
+- Re-ran: docker ps -a --filter "name=loki" --filter "name=promtail"
+- Result: Both containers show "Exited (127)"
+- Loki and Promtail are NOT running - config files still missing.
+- Testing report is accurate as-is.
+- However, per PM directive, team assignments corrected:
+  - Backend Lead: Shivanshu Dhakrey
+  - Frontend Lead: Hitanshu Dhakrey
+- .env removed from deliverables list.
+
+Status: PENDING PM CONFIRMATION
+================================================================================

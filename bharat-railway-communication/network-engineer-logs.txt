@@ -339,3 +339,27 @@ Status: CLOSED
 ================================================================================
 END OF COMMUNICATION LOG
 ================================================================================
+
+================================================================================
+ENTRY #14 - PM Revision Request for Step 5 Report
+================================================================================
+Date: 2026-06-16
+From: Project Manager (Koushal Jha)
+To: Network Engineer (Chandra Shekhar Bansal)
+Subject: RE: Step 5 Completion Report - Revisions Required
+
+PM Message:
+- Physical infrastructure verified as successful.
+- Documentation has factual inaccuracies.
+- Revisions required:
+  1. Container Status: Loki and Promtail are active and running, not stopped.
+  2. Team Assignments: Shivanshu Dhakrey is Backend Lead, Hitanshu Dhakrey is Frontend Lead.
+  3. Deliverables List: Remove .env from deliverables (deleted to prevent duplication).
+- Submit version 1.0.1 of Step 5 report for final sign-off.
+
+My Action Required:
+- Correct all three errors in project-manager-logs.txt.
+- Submit version 1.0.1 of completion report.
+
+Status: PENDING
+================================================================================

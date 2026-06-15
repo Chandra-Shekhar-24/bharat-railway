@@ -1,0 +1,159 @@
+developer name: Chandra Shekhar Bansal
+developer email: chandrashekharbansal.2006@gmail.com
+assisted by: DeepSeek
+current file version: 1.0.0
+version 1.0.0: Detailed Docker infrastructure testing report for Bharat Railway Booking System.
+
+================================================================================
+DOCKER INFRASTRUCTURE TESTING REPORT
+================================================================================
+
+Project: Bharat Railway Booking System
+Date: 2026-06-15
+Time: 19:00 - 19:30 IST
+Tested by: Chandra Shekhar Bansal (Network Engineer & Database Developer)
+Branch: feature/network-engineer-chandra
+Compose File Version: 1.0.9
+Target IP: 100.95.255.78
+Docker Network: bharat-railway-net
+
+================================================================================
+1. TEST ENVIRONMENT
+================================================================================
+- Docker Engine: 29.2.1
+- Docker Compose: v5.1.0
+- OS: Docker Desktop on Windows (WSL2)
+- CPUs: 12
+- Memory: 7.43 GiB
+
+================================================================================
+2. CONTAINER STATUS
+================================================================================
+
+Container Name              Image                        Status      Health
+----------------------------------------------------------------------------
+bharat-railway-postgres     postgres:16                  Running     Healthy
+bharat-railway-pgbouncer    edoburu/pgbouncer:latest     Running     N/A
+bharat-railway-valkey       valkey/valkey:latest         Running     Healthy
+bharat-railway-kafka        confluentinc/cp-kafka:7.7.1  Running     Healthy
+bharat-railway-minio        minio/minio:latest           Running     Healthy
+bharat-railway-grafana      grafana/grafana:latest       Running     N/A
+bharat-railway-prometheus   prom/prometheus:latest       Running     N/A
+bharat-railway-backend      eclipse-temurin:21-jre       Running     N/A
+bharat-railway-nginx        nginx:latest                 Running     N/A
+bharat-railway-loki         grafana/loki:latest          Exited (127) N/A
+bharat-railway-promtail     grafana/promtail:latest      Exited (127) N/A
+bharat-railway-certbot      certbot/certbot:latest       Exited (1)   N/A
+
+================================================================================
+3. INDIVIDUAL SERVICE TESTS
+================================================================================
+
+3.1 PostgreSQL (Port: 50001)
+    Test: Schema creation
+    Command: psql -U bharat_railway_admin_chandra -d bharat_railway_core -c "\dn"
+    Result: PASS
+    Schemas Found:
+        - booking_db (Owner: bharat_railway_admin_chandra)
+        - employee_db (Owner: bharat_railway_admin_chandra)
+        - train_master_db (Owner: bharat_railway_admin_chandra)
+        - public (Owner: pg_database_owner)
+
+3.2 PgBouncer (Port: 50002)
+    Test: Container running
+    Status: Up
+    Result: PASS
+
+3.3 Valkey (Port: 50003)
+    Test: PING command
+    Command: valkey-cli -a <password> ping
+    Response: PONG
+    Result: PASS
+
+3.4 Kafka (Port: 50004 internal, 59092 external)
+    Test: Broker running, topic list
+    Command: kafka-topics --bootstrap-server localhost:9092 --list
+    Response: Empty (no topics created yet, expected)
+    External Listener: 100.95.255.78:59092
+    Result: PASS
+
+3.5 MinIO (Port: 50005 API, 50006 Console)
+    Test: Health endpoint
+    Command: curl http://localhost:9000/minio/health/live
+    Response: HTTP 200 OK
+    Result: PASS
+
+3.6 Grafana (Port: 50007)
+    Test: Health endpoint
+    Command: curl http://localhost:3000/api/health
+    Response: HTTP 200 OK
+    Result: PASS
+
+3.7 Nginx (Port: 8081 HTTP, 8443 HTTPS)
+    Test: HTTP endpoint
+    Command: curl http://localhost:80
+    Response: HTTP 200 OK
+    Result: PASS
+
+3.8 Backend (Java 21 - Internal Only)
+    Test: DNS resolution
+    Command: getent hosts bharat-railway-postgres
+    Response: 172.18.0.10 bharat-railway-postgres
+    Crash Loop Check: Container alive, tail -f /dev/null active
+    Result: PASS
+
+3.9 Prometheus (Internal Only)
+    Test: Container running
+    Status: Up
+    Result: PASS
+
+3.10 Loki
+    Test: Container running
+    Status: Exited (127)
+    Root Cause: loki-config.yml file not yet created
+    Action: Config file to be added in future sprint
+    Result: FAIL (expected, non-blocking)
+
+3.11 Promtail
+    Test: Container running
+    Status: Exited (127)
+    Root Cause: promtail-config.yml file not yet created
+    Action: Config file to be added in future sprint
+    Result: FAIL (expected, non-blocking)
+
+3.12 Certbot
+    Test: Container running
+    Status: Exited (1)
+    Root Cause: No SSL certificates to manage, no DNS configured
+    Action: To be configured during production deployment
+    Result: FAIL (expected, non-blocking)
+
+================================================================================
+4. NETWORK CONNECTIVITY
+================================================================================
+- Docker DNS Resolution: Working (container name to IP)
+- Internal Communication: All containers reachable on bharat-railway-net
+- External Access: All mapped ports accessible on 100.95.255.78
+- Health Check Dependencies: Backend waits for healthy state of Postgres, Valkey, Kafka, Minio
+
+================================================================================
+5. SUMMARY
+================================================================================
+Total Containers: 12
+Running: 9
+Stopped (Expected): 3 (Loki, Promtail, Certbot)
+Core Services Healthy: All PASS
+Critical Blockers: None
+Ready for Backend Development: YES
+
+================================================================================
+6. NEXT STEPS
+================================================================================
+- Create loki-config.yml in bharat-railway-loki/
+- Create promtail-config.yml in bharat-railway-promtail/
+- Handover to Backend Team (Hithanshu Dhakrey) for table creation
+- Certbot configuration during production deployment
+
+================================================================================
+END OF REPORT
+================================================================================

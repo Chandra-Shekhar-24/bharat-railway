@@ -326,3 +326,111 @@ TABLE: password_reset
 - expires_at: TIMESTAMPTZ(3) NOT NULL
 
 STRICT DIRECTIVE: Do not write any SQL queries or generate DDL yet. Review this updated blueprint, confirm the constraints, and acknowledge the removal of the role tables. Await my final approval before writing any code.
+
+DB: Acknowledged, Koushal. Reviewing the updated blueprint with roles removal and new column additions.
+
+--- TECHNICAL REVIEW: UPDATED BLUEPRINT ---
+
+1. ROLES & USER_ROLES REMOVAL
+
+Confirmed. The elimination of identity.roles and identity.user_roles is architecturally sound given the clarified domain boundary. This database serves a single application — passenger-facing booking. Every row in identity.users is implicitly a "User" role. No polymorphic identity required. Employee/Admin segregation at the infrastructure level (separate application + database) is the correct isolation pattern. This avoids unnecessary RBAC complexity within a homogeneous user base.
+
+No objections. Removed.
+
+2. IDENTITY SCHEMA REVIEW
+
+TABLE: users
+
+Column additions reviewed:
+
+- full_name: VARCHAR(100) NOT NULL — Acceptable. Natural name length. Add index if search-by-name becomes a requirement in Phase 2 booking module.
+- mobile_number: VARCHAR(15) NOT NULL UNIQUE — Valid. 15 chars accommodates E.164 format with country code. UNIQUE constraint prevents duplicate registration. Indexed automatically.
+- date_of_birth: DATE NOT NULL — Valid. No time component needed. Application-layer age validation implied (e.g., minimum 18 years for Tatkal booking eligibility).
+- gender: CHAR(1) NOT NULL — Acceptable. Single character encoding (M/F/O/N as per application convention). Document the encoding map in comments for future developers.
+- failed_login_attempts: SMALLINT NOT NULL DEFAULT 0 — Security field. Incremented on failed auth. Reset on successful login. Paired with account_locked_until for brute-force protection. Recommend application-layer threshold (e.g., 5 attempts triggers lock). No database trigger needed; this is business logic.
+- account_locked_until: TIMESTAMPTZ(3) NULL — Correctly nullable. NULL means no active lock. When set, application checks WHERE account_locked_until > NOW() to deny login. Index if lock-check queries become frequent on high-traffic login endpoint.
+- is_email_verified: BOOLEAN NOT NULL DEFAULT FALSE — Standard. Prevents unverified accounts from booking.
+- is_mobile_verified: BOOLEAN NOT NULL DEFAULT FALSE — Standard. Dual-channel verification for critical operations (PNR cancellation, refund initiation).
+
+Status mapping unchanged: 1=active, 0=inactive, 2=suspended. SMALLINT confirmed.
+
+UNIQUE constraints on username, email, mobile_number — three separate unique indexes. No composite unique needed. All three are independent lookup keys for login and account recovery.
+
+3. AUTH SCHEMA REVIEW
+
+TABLE: user_sessions
+
+Column additions reviewed:
+
+- user_agent: TEXT NOT NULL — Correct. Browser/client fingerprint. TEXT chosen because user-agent strings can exceed 255 chars in edge cases (enterprise proxies, custom clients). Not indexed; used for audit/analysis only.
+- device_id: VARCHAR(255) NULL — Optional device fingerprint. NULL for web logins where device ID is unavailable. Mobile apps populate this. Index if multi-device session management is required later.
+- last_activity_at: TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) — Critical for idle session timeout. Application updates this column on every authenticated request. Cron job or session middleware checks last_activity_at < NOW() - INTERVAL '30 minutes' to expire idle sessions. Composite index with user_id useful if listing active sessions per user.
+- expires_at: TIMESTAMPTZ(3) NOT NULL — Absolute session expiry (e.g., 24 hours from login). Distinct from idle timeout. Allows forced re-authentication regardless of activity.
+
+FK to identity.users ON DELETE CASCADE confirmed. Index strategy: idx_user_sessions_lookup on (user_id, login_time DESC) and idx_ip_address on ip_address. Additional index on (user_id, last_activity_at DESC) to be evaluated post-launch for active session listing queries.
+
+TABLE: login_history
+
+Column additions reviewed:
+
+- user_agent: TEXT NOT NULL — Same rationale as user_sessions. Captures what attempted login for security forensics.
+- geo_location: VARCHAR(255) NULL — Stores resolved IP geolocation (city/country). NULL for internal network logins where geolocation is unavailable. Populated by application using GeoIP lookup service.
+- login_method: VARCHAR(50) NOT NULL — Tracks authentication method: 'password', 'otp_sms', 'otp_email', 'social_google', 'social_facebook'. Enables login method analytics and risk scoring. Recommend application-level ENUM or constant validation.
+- failure_reason: VARCHAR(100) NULL — Records why login failed: 'invalid_password', 'account_locked', 'account_inactive', 'email_unverified'. NULL for successful logins (status=1). Structured failure tracking for SOC/Security dashboard.
+
+Status mapping: 1=success, 0=failure. SMALLINT confirmed.
+
+FK to identity.users ON DELETE CASCADE confirmed. Index strategy: idx_login_history_user on (user_id, login_time DESC), idx_login_history_status on (status, login_time DESC). Additional index on login_method deferred to Phase 2 based on analytics query patterns.
+
+TABLE: password_reset
+
+Column additions reviewed:
+
+- request_ip: VARCHAR(45) NOT NULL — Source IP of password reset request. Audits reset attempt origins. Correlated with user_sessions and login_history IPs for abuse detection.
+- reset_channel: VARCHAR(50) NOT NULL — Tracks delivery method: 'email', 'sms'. Useful for multi-factor reset flows and channel reliability metrics.
+- is_used: BOOLEAN NOT NULL DEFAULT FALSE — Token consumption tracker. Prevents token reuse. Application sets to TRUE on successful password reset. Query pattern: WHERE token = ? AND is_used = FALSE AND expires_at > NOW().
+
+UNIQUE on token confirmed. FK to identity.users ON DELETE CASCADE confirmed. Index strategy: idx_token (UNIQUE), idx_user_reset on (user_id, expires_at).
+
+4. CONSTRAINT & INTEGRITY SUMMARY
+
+Cross-schema FKs:
+- auth.user_sessions.user_id -> identity.users.user_id ON DELETE CASCADE
+- auth.login_history.user_id -> identity.users.user_id ON DELETE CASCADE
+- auth.password_reset.user_id -> identity.users.user_id ON DELETE CASCADE
+
+All valid in PostgreSQL single-database multi-schema setup.
+
+UNIQUE constraints:
+- identity.users.username
+- identity.users.email
+- identity.users.mobile_number
+- auth.password_reset.token
+
+CHECK constraints (optional, not specified but recommended):
+- identity.users.gender: CHECK (gender IN ('M','F','O','N'))
+- identity.users.status: CHECK (status IN (0, 1, 2))
+- auth.login_history.status: CHECK (status IN (0, 1))
+- auth.login_history.login_method: CHECK constraint or ENUM equivalent
+
+Not enforcing CHECK constraints at DB level is acceptable if application layer validates strictly. Flagged for your consideration.
+
+5. NORMALIZATION
+
+3NF maintained. No transitive dependencies. All new columns are directly dependent on their table's primary key. Date of birth, gender, full_name are attributes of the user entity. Failed login attempts and account lock are security state attributes of the user entity. Session/Audit/Reset metadata columns are attributes of their respective entities.
+
+6. INDEX CONSIDERATIONS FOR NEW COLUMNS
+
+Current indexes remain sufficient. Additional indexes to evaluate post-launch based on query patterns:
+- identity.users.mobile_number — already covered by UNIQUE constraint.
+- identity.users.account_locked_until — partial index for locked accounts: WHERE account_locked_until IS NOT NULL. Not needed at launch.
+- auth.user_sessions.last_activity_at — composite with user_id if idle session cleanup query becomes frequent.
+- auth.login_history.login_method — index if analytics dashboard filters by method.
+
+Not required for Phase 1 DDL. Monitor and add in Phase 2.
+
+7. ACKNOWLEDGMENT
+
+Roles and user_roles removal is noted and accepted. The domain is passenger-only. Cross-cutting admin functionality belongs in a separate service and database — correct microservice isolation principle.
+
+Blueprint reviewed. No design objections. All column additions are justified for enterprise-grade security posture. Awaiting final approval to proceed with PostgreSQL DDL generation for identity and auth schemas.

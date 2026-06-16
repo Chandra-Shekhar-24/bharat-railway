@@ -317,3 +317,25 @@ Subject: Step 5 Completion Report - Final Sign-off
 
 Status: CLOSED
 ================================================================================
+
+================================================================================
+ENTRY #15 - Database Initialization Architecture Directive
+================================================================================
+Date: 2026-06-17
+Subject: Finalize database initialization procedure via Docker Compose
+
+[INITIATOR: Project Manager - Koushal Jha]
+- Root init.sql (bharat-railway-postgres/init.sql) will strictly contain
+  CREATE SCHEMA IF NOT EXISTS commands only.
+- Table creations, indexes, and relationships will go in separate schemas/ directory.
+- Directives for Network/Docker Engineer:
+  1. Verify volume mapping in docker-compose.yml for init.sql auto-execution.
+  2. Confirm POSTGRES_USER, POSTGRES_DB sync between .env and init.sql.
+- Awaiting acknowledgment before green-lighting DB Developer (Chandra).
+
+Status: PENDING
+================================================================================
+
+================================================================================
+END OF TRACK 1 LEDGER
+================================================================================

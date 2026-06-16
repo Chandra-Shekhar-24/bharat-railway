@@ -39,4 +39,25 @@ Provide your technical analysis regarding:
 - Referential Integrity: Define FK relationships and ON DELETE constraints for session/history tracking.
 - Data Types: Recommendations for `password_hash` (hashing algorithm compatibility) and `timestamp` storage (UTC/Timezone-aware).
 
-DB:
+DB: Acknowledged. Technical analysis of the Phase 1 blueprint follows.
+
+1. INDEXING STRATEGY
+- users.email: UNIQUE INDEX mandatory. BTREE is optimal for exact-match lookups during authentication. Prevents duplicate email registration at the database level. Secondary UNIQUE INDEX on `username` recommended if username-based login is supported.
+- user_sessions: Composite index on (user_id, login_time DESC) for efficient session listing per user. Consider prefix index on ip_address (first 15 chars) for pattern searching if IP auditing is required.
+- login_history: Composite index on (user_id, login_time DESC) to support user-specific login timeline queries. Covering index if status filtering is frequent.
+- password_reset: Index on (user_id, expires_at) to quickly invalidate old tokens. Hash index or BTREE on token for exact lookups during reset flows.
+
+2. REFERENTIAL INTEGRITY
+- user_sessions.user_id -> users.user_id: ON DELETE CASCADE. Sessions are meaningless without a user. CASCADE cleanup prevents orphaned session records when user accounts are permanently removed.
+- login_history.user_id -> users.user_id: ON DELETE CASCADE. Same logic as sessions. Audit trail relevance terminates with user deletion.
+- password_reset.user_id -> users.user_id: ON DELETE CASCADE. Expired reset tokens should be purged when the parent user record is deleted.
+- Role assignment requires a junction table users_roles(user_id, role_id). The current schema omits this many-to-many relationship. If roles are directly attached to users table, normalization breaks. Recommend adding this junction table with FK cascades.
+
+3. DATA TYPE RECOMMENDATIONS
+- password_hash: VARCHAR(255) or CHAR(60) if exclusively using bcrypt. VARCHAR(255) provides headroom for future algorithm migration (argon2id outputs 96-char base64). Never TEXT, as fixed-width lookups degrade with InnoDB off-page storage.
+- Timestamps (created_at, login_time, expires_at): TIMESTAMP(3) preferred over DATETIME for timezone-aware automatic conversion. Store all times in UTC internally. The (3) fractional second precision handles high-frequency login collision scenarios. MySQL's TIMESTAMP auto-converts session timezone to UTC on write. If historical data range exceeds 2038, fallback to DATETIME(3) with explicit UTC offset handling in application layer, but TIMESTAMP is safe for immediate scope.
+- ip_address: VARBINARY(16) for IPv4/IPv6 dual-stack support using INET6_ATON/INET6_NTOA. VARCHAR(45) alternative if human-readability outweighs storage efficiency.
+- token (password_reset): VARCHAR(255) for hashed token storage. CHAR(64) if storing raw SHA-256 hex digest.
+- status fields: ENUM('active','inactive','suspended') for users; ENUM('success','failure') for login_history. ENUM ensures data integrity at cost of ALTER TABLE for new statuses. TINYINT with application-level constants provides more flexibility.
+
+Awaiting your directive on the role junction table adjustment and status field preference before proceeding to DDL generation.

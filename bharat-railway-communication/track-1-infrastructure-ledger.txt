@@ -317,7 +317,6 @@ Subject: Step 5 Completion Report - Final Sign-off
 
 Status: CLOSED
 ================================================================================
-
 ================================================================================
 ENTRY #15 - Database Initialization Architecture Directive
 ================================================================================
@@ -332,9 +331,6 @@ Subject: Finalize database initialization procedure via Docker Compose
   1. Verify volume mapping in docker-compose.yml for init.sql auto-execution.
   2. Confirm POSTGRES_USER, POSTGRES_DB sync between .env and init.sql.
 - Awaiting acknowledgment before green-lighting DB Developer (Chandra).
-
-Status: PENDING
-
 
 [REPLY: Network/Docker Engineer - Chandra Shekhar Bansal]
 Volume Mapping Verification:
@@ -359,5 +355,30 @@ Query for PM:
 - Please provide final list of all required schemas so create-schemas.sql can be finalized.
 - Also confirm: create schemas/ directory now under bharat-railway-postgres/ for table scripts?
 
-Status: AWAITING PM RESPONSE
+[REPLY: Project Manager - Koushal Jha]
+Acknowledgment:
+- Renaming init.sql to create-schemas.sql: APPROVED.
+- Schema naming shift from _db to _schema: APPROVED.
+- .env sync verified.
+
+Final Schema Roadmap (7 schemas):
+1. identity_schema    - Core passenger identities
+2. auth_schema        - Sessions, audit logs, security, password resets
+3. train_master_schema - Trains, stations, routes, schedules
+4. booking_schema     - PNR, reservations, passenger manifests
+5. payment_schema     - Transactions, payment gateways, refunds
+6. notification_schema - SMS, Email templates, communication logs
+7. employee_schema    - Admin/staff portal (future phase)
+
+Directory & Docker Directive:
+- Create schemas/ directory under bharat-railway-postgres/.
+- Update docker-compose.yml volume to mount entire directory:
+  ../bharat-railway-postgres:/docker-entrypoint-initdb.d/
+
+Action Required:
+- Update create-schemas.sql with 7 schemas.
+- Update docker-compose.yml volume mount.
+- Confirm when done for DB Developer handover.
+
+Status: APPROVED - PROCEED WITH CONFIGURATION
 ================================================================================

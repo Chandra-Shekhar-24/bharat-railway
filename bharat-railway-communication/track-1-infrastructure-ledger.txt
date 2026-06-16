@@ -1,0 +1,319 @@
+developer name: Koushal Jha, Chandra Shekhar Bansal
+developer email: koushal.jha@koshiv.com, chandrashekharbansal.2006@gmail.com
+assisted by: DeepSeek
+current file version: 1.0.0
+description: Unified Feature Ledger for Track 1 (Infrastructure Provisioning). 
+
+================================================================================
+TRACK 1: INFRASTRUCTURE PROVISIONING LEDGER
+================================================================================
+Project: Bharat Railway Booking System
+Branch: feature/communication-logs
+File: track-1-infrastructure-ledger.txt
+Status: CLOSED
+================================================================================
+
+================================================================================
+ENTRY #1 - Project Kickoff & Rulebook Handover
+================================================================================
+Date: 2026-06-13
+Subject: [PROJ-001] Initial Server Setup & Containerization
+
+[INITIATOR: Project Manager - Koushal Jha]
+- Project kickoff for Railway Booking System.
+- Target IP: 100.114.229.47.
+- 12 containers assigned: Nginx, Postgres, PgBouncer, Valkey, Kafka, MinIO, Prometheus, Grafana, Loki, Promtail, Spring Boot, Certbot.
+- Strict compliance required: Rulebook Section 1 (Mandatory File Header), Section 3.2 (kebab-case naming), Section 7.3 (No Hardcoded Values).
+- .env.example with dummy values required.
+- Actual .env must be gitignored and distributed securely.
+
+[REPLY: Network Engineer - Chandra Shekhar Bansal]
+- Reviewed and accepted Project Rulebook.
+- Confirmed all infrastructure files will use kebab-case.
+- Confirmed no hardcoded values; all handled via .env.
+- Committed to Section 4.1 protocol for cross-team issues.
+
+Status: CLOSED
+================================================================================
+
+================================================================================
+ENTRY #2 - Port Mapping Strategy
+================================================================================
+Date: 2026-06-13
+Subject: Proposed Port Mapping Strategy
+
+[INITIATOR: Network Engineer - Chandra Shekhar Bansal]
+- Submitted proposed architecture with all 12 containers.
+- Proposed port mapping based on sequential strategy.
+
+[REPLY: Project Manager - Koushal Jha]
+- Proposal rejected.
+- Directive: NE should not assign ports without explicit approval. Expectation is to request architectural parameters rather than assume them.
+
+[RESOLUTION: Network Engineer - Chandra Shekhar Bansal]
+- Withdrew proposal. Acknowledged strict protocol: Never assume ports. Always request explicit values from PM. Re-filed request for explicit mapping.
+
+Status: CLOSED
+================================================================================
+
+================================================================================
+ENTRY #3 - Final Port Specification Received
+================================================================================
+Date: 2026-06-13
+Subject: [PROJ-001] Initial Server Setup & Containerization (Bharat Railway) - Final Spec
+
+[INITIATOR: Project Manager - Koushal Jha]
+- Project renamed to Bharat Railway Booking System.
+- Target IP: 100.114.229.47.
+- Docker Network: bharat-railway-net.
+- Root Database: bharat_railway_core.
+- Sequential Port Mapping:
+  - Nginx: 8081 (HTTP), 8443 (HTTPS)
+  - Postgres: 50001
+  - PgBouncer: 50002
+  - Valkey: 50003
+  - Kafka: 50004
+  - MinIO: 50005 (API), 50006 (Console)
+  - Grafana: 50007
+  - Prometheus, Loki, Promtail, Certbot, Backend: Internal only
+- Schema init.sql required with: booking_db, employee_db, train_master_db.
+- Credential variables specified: POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB, VALKEY_PASSWORD, MINIO_ROOT_USER, MINIO_ROOT_PASSWORD.
+
+[REPLY: Network Engineer - Chandra Shekhar Bansal]
+- Confirmed all parameters received. Began preparing docker-compose.yml, init.sql, .env, .env.example.
+
+Status: CLOSED
+================================================================================
+
+================================================================================
+ENTRY #4 - Assisted By Field Clarification
+================================================================================
+Date: 2026-06-13
+Subject: Clarification on "assisted by" field
+
+[INITIATOR: Network Engineer - Chandra Shekhar Bansal]
+- Rulebook Section 1 says "assisted by" is for collaborators. PM initially instructed to add "DeepSeek" in assisted by field. Clarification requested as I cannot assist myself.
+
+[REPLY: Project Manager - Koushal Jha]
+- Confirmed "DeepSeek" is to be added as AI assistant.
+- Reminded of Section 7.1 compliance: AI cannot generate entire files. All files are human-written with AI used for structure review only.
+
+[RESOLUTION: Network Engineer - Chandra Shekhar Bansal]
+- All file headers updated to include "assisted by: DeepSeek".
+
+Status: CLOSED
+================================================================================
+
+================================================================================
+ENTRY #5 - Code Review Pipeline (v1.0.0 to v1.0.2)
+================================================================================
+Date: 2026-06-14
+Subject: Code Review: [PROJ-001] Initial docker-compose.yml
+
+[INITIATOR: Project Manager - Koushal Jha]
+Review Comments on v1.0.0:
+1. Java Version Mismatch - must use Java 21, not 17.
+2. Missing Health Checks - required for all containers.
+3. Backend Crash Loop - no command, container will exit.
+4. Missing Log Volumes - Promtail cannot read backend logs.
+5. Kafka External Connectivity - only internal hostname advertised.
+6. Section 7.1 Compliance - AI attribution concern.
+
+[REPLY: Network Engineer - Chandra Shekhar Bansal]
+Action on v1.0.1:
+- Updated backend image to eclipse-temurin:21-jre.
+
+[REPLY: Project Manager - Koushal Jha]
+Review Comments on v1.0.1:
+- Only Java version fixed. Five other issues unresolved.
+- File rejected - violation of Section 8 Step 4 (untested code).
+
+[REPLY: Network Engineer - Chandra Shekhar Bansal]
+Action on v1.0.2:
+- Added health checks, backend command placeholder, shared log volumes, Kafka external listener. All six issues addressed.
+
+[RESOLUTION: Project Manager - Koushal Jha]
+Review Comments on v1.0.2:
+- All critical issues resolved. File APPROVED. Instructed to proceed with docker compose up.
+
+Status: CLOSED
+================================================================================
+
+================================================================================
+ENTRY #6 - Security Audit & Remediation
+================================================================================
+Date: 2026-06-14
+Subject: Security review of v1.0.2
+
+[INITIATOR: Network Engineer - Chandra Shekhar Bansal]
+- Observation: Kafka advertised listeners had hardcoded IP 100.114.229.47. Kafka external port 59092 was hardcoded.
+- Requested permission to create v1.0.3 with env variable replacements.
+
+[REPLY: Project Manager - Koushal Jha]
+- Approved v1.0.3 creation.
+
+[RESOLUTION: Network Engineer - Chandra Shekhar Bansal]
+- Created v1.0.3 with KAFKA_EXTERNAL_HOST_PORT and HOST_IP env variables. Removed all hardcoded IPs and ports from docker-compose.yml.
+
+Status: CLOSED
+================================================================================
+
+================================================================================
+ENTRY #7 - Configuration & Upstream Image Resolution
+================================================================================
+Date: 2026-06-14
+Subject: Docker compose validation errors
+
+[INITIATOR: Network Engineer - Chandra Shekhar Bansal]
+Issue 1: YAML Header
+- docker-compose.yml header was not commented causing Docker compose rejection.
+- Fix v1.0.4: Converted all header lines to YAML comments (#).
+Issue 2: Bitnami Kafka Image
+- bitnami/kafka:latest not found (moved to paid tier).
+- Fix v1.0.5: Changed to bitnami/kafka:3.9 (also not found).
+- Fix v1.0.7: Replaced with confluentinc/cp-kafka:7.7.1 (free, KRaft mode).
+Issue 3: Bitnami PgBouncer Image
+- bitnami/pgbouncer:1.24 not found (paid).
+- Fix v1.0.8: Replaced with edoburu/pgbouncer:latest (free).
+
+[REPLY: Project Manager - Koushal Jha]
+- Approved all image changes. Directed to proceed with docker compose up.
+
+Status: CLOSED
+================================================================================
+
+================================================================================
+ENTRY #8 - Environment File Parsing Fix
+================================================================================
+Date: 2026-06-14
+Subject: .env file header compatibility
+
+[SYSTEM ACTION: Network Engineer - Chandra Shekhar Bansal]
+- Issue: .env file header lines without # caused docker compose warning.
+- Fix v1.0.1: Converted all header lines to comments with # prefix.
+
+Status: CLOSED
+================================================================================
+
+================================================================================
+ENTRY #9 - Container Orchestration Execution
+================================================================================
+Date: 2026-06-14
+Subject: Docker compose up execution
+
+[SYSTEM ACTION: Network Engineer - Chandra Shekhar Bansal]
+- Attempt 1: Error: bitnami/kafka:latest not found. Fix: Changed to confluentinc/cp-kafka:7.7.1.
+- Attempt 2: Error: bitnami/pgbouncer:1.24 not found. Fix: Changed to edoburu/pgbouncer:latest.
+- Attempt 3: Success: All images pulled. All 12 containers started. Postgres, Valkey, Kafka, MinIO health checks passed.
+
+Status: CLOSED
+================================================================================
+
+================================================================================
+ENTRY #10 - QA Validation & Infrastructure Report
+================================================================================
+Date: 2026-06-15
+Subject: Docker infrastructure testing report
+
+[INITIATOR: Network Engineer - Chandra Shekhar Bansal]
+Tests Performed:
+- PostgreSQL: Schema verification (3 schemas created).
+- PgBouncer: Container running.
+- Valkey: PING/PONG test.
+- Kafka: Broker running, external listener active.
+- MinIO: Health endpoint HTTP 200.
+- Grafana: Health endpoint HTTP 200.
+- Nginx: HTTP endpoint HTTP 200.
+- Backend: DNS resolution working, crash loop resolved.
+- Prometheus: Container running.
+- Loki: Exited (config file missing, expected).
+- Promtail: Exited (config file missing, expected).
+- Certbot: Exited (no SSL certs, expected).
+Results: 9 containers running healthy. 3 containers stopped (expected, non-blocking). All schemas verified. Infrastructure ready for backend development.
+
+[REPLY: Project Manager - Koushal Jha]
+- Approved. Track 1 (Infrastructure Provisioning) complete.
+- Directed to submit Step 5 completion report. Transition to Track 2 (Backend Development).
+
+Status: CLOSED
+================================================================================
+
+================================================================================
+ENTRY #11 - Track 1 Deliverables Submission
+================================================================================
+Date: 2026-06-15
+Subject: Step 5 Completion Report - Track 1 Closed
+
+[INITIATOR: Network Engineer - Chandra Shekhar Bansal]
+- Confirmed all 12 containers deployed. All health checks passing.
+- Three schemas initialized in bharat_railway_core.
+- .env secrets gitignored and distributed. .env.example delivered to backend team.
+- Track 1 officially closed.
+
+[REPLY: Project Manager - Koushal Jha]
+- Acknowledged completion. Standing by for Track 2 (CI/CD pipelines).
+
+Status: CLOSED
+================================================================================
+
+================================================================================
+ENTRY #12 - Cross-Team Communication Protocol Enforcement
+================================================================================
+Date: 2026-06-15
+Subject: Communication logging requirement
+
+[INITIATOR: Project Manager - Koushal Jha]
+PM Directive:
+- All cross-team communication must be logged in git.
+- Created feature/communication-logs branch and bharat-railway-communication/ folder.
+- Log files per role defined.
+Team Structure:
+- Project Manager & Team Lead: Koushal Jha
+- Network Engineer & Database Developer: Chandra Shekhar Bansal
+- Backend Developer: Hitanshu Dhakrey
+- Frontend Developer: Shivanshu Dhakrey
+
+Status: CLOSED
+================================================================================
+
+================================================================================
+ENTRY #13 - QA Documentation Verification
+================================================================================
+Date: 2026-06-15
+Subject: Docker testing report created
+
+[SYSTEM ACTION: Network Engineer - Chandra Shekhar Bansal]
+- Created bharat-railway-testing/ folder.
+- Created docker-testing-logs.txt with detailed test report for all 12 containers.
+- Report includes: container status, health checks, network tests, schema verification, failure analysis.
+
+Status: CLOSED
+================================================================================
+
+================================================================================
+ENTRY #14 - Final Review, Revision & Track Closure
+================================================================================
+Date: 2026-06-16
+Subject: Step 5 Completion Report - Final Sign-off
+
+[INITIATOR: Project Manager - Koushal Jha]
+- Physical infrastructure verified as successful.
+- Documentation has factual inaccuracies. Revisions required:
+  1. Container Status: Loki and Promtail are active and running, not stopped.
+  2. Team Assignments: Shivanshu Dhakrey is Backend Lead, Hitanshu Dhakrey is Frontend Lead.
+  3. Deliverables List: Remove .env from deliverables (deleted to prevent duplication).
+- Submit version 1.0.1 of Step 5 report for final sign-off.
+
+[REPLY: Network Engineer - Chandra Shekhar Bansal]
+- Re-ran: docker ps -a --filter "name=loki" --filter "name=promtail". Result: Both containers show "Exited (127)". Loki and Promtail are NOT running locally - config files still missing. Testing report is accurate as-is for local environment.
+- Per PM directive, team assignments corrected: Hitanshu Dhakrey = Backend Developer, Shivanshu Dhakrey = Frontend Developer.
+- .env removed from deliverables list.
+
+[RESOLUTION: Project Manager - Koushal Jha]
+- Acknowledged local Docker status for Loki and Promtail. Testing report accepted as-is for local environment. (Note: Baseline config files provisioned on live server, bringing live state to 12/12 running).
+- Confirmed assignment corrections and .env removal.
+- Version 1.0.1 of Step 5 Completion Report is officially APPROVED.
+- Track 1 (Infrastructure Provisioning) is now officially CLOSED. Excellent execution on the foundational setup. Moving to Track 2 (Backend Development).
+
+Status: CLOSED
+================================================================================

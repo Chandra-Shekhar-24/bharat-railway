@@ -1,10 +1,11 @@
 developer name: Chandra Shekhar Bansal
 developer email: chandrashekharbansal.2006@gmail.com
 assisted by: DeepSeek
-current file version: 1.0.2
+current file version: 1.0.3
 version 1.0.0: Initial .gitignore to exclude planning folder and sensitive files.
 version 1.0.1: Add .env to gitignore for secure credential management.
 version 1.0.2: Add .env, loki, prometheus, and promtail to gitignore.
+version 1.0.3: Add communication archive to gitignore.
 
 # Planning folder - contains sensitive project discussions
 bharat-railway-planning/
@@ -19,3 +20,6 @@ bharat-railway-docker/.env
 bharat-railway-loki/
 bharat-railway-prometheus/
 bharat-railway-promtail/
+
+# Communication archive files
+bharat-railway-communication/archive/

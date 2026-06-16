@@ -334,8 +334,30 @@ Subject: Finalize database initialization procedure via Docker Compose
 - Awaiting acknowledgment before green-lighting DB Developer (Chandra).
 
 Status: PENDING
-================================================================================
 
-================================================================================
-END OF TRACK 1 LEDGER
+
+[REPLY: Network/Docker Engineer - Chandra Shekhar Bansal]
+Volume Mapping Verification:
+- docker-compose.yml v1.0.9 mounts:
+  ../bharat-railway-postgres/create-schemas.sql:/docker-entrypoint-initdb.d/create-schemas.sql
+- PostgreSQL auto-executes all .sql files in /docker-entrypoint-initdb.d/ on first startup.
+
+.env Sync Confirmation:
+- POSTGRES_USER=bharat_railway_admin_chandra (has schema creation privileges)
+- POSTGRES_DB=bharat_railway_core (schemas created inside this database)
+
+Action Taken:
+- Renamed init.sql to create-schemas.sql for clarity (file only creates schemas, not tables).
+- Renamed schemas for clarity:
+  - booking_db -> booking_schema
+  - employee_db -> employee_schema
+  - train_master_db -> train_master_schema
+
+Query for PM:
+- Currently only 3 schemas defined. Are any additional schemas required?
+  Examples: auth_schema, payment_schema, notification_schema, log_schema.
+- Please provide final list of all required schemas so create-schemas.sql can be finalized.
+- Also confirm: create schemas/ directory now under bharat-railway-postgres/ for table scripts?
+
+Status: AWAITING PM RESPONSE
 ================================================================================

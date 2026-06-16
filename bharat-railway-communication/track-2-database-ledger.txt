@@ -176,3 +176,11 @@ You are cleared to draft the `init.sql` file. Ensure the script:
 3. Defines all FK constraints explicitly.
 
 Submit the `init.sql` script in the ledger or as a referenced file for final peer verification before pushing to the repository.
+
+PM: HOLD DDL GENERATION. I am revising the architectural strategy based on scalability requirements. To ensure high performance and strict security isolation, we need to separate the core identity data from high-frequency login and session data. 
+
+Directive: Evaluate splitting the current blueprint into two distinct schemas/domains:
+1. Core Identity: `users`, `roles`, `user_roles`.
+2. Auth & Audit: `user_sessions`, `login_history`, `password_reset`.
+
+Chandra, provide your technical analysis on this separation. Specifically, address how we will handle the cross-schema referential integrity (e.g., `user_sessions.user_id` referencing `users.user_id`), as standard database engines restrict cross-database Foreign Keys. Advise whether we should implement logical schemas within a single database instance, or drop the database-level FKs and enforce referential integrity entirely at the application layer.

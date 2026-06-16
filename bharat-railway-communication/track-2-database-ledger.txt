@@ -263,3 +263,66 @@ Schema: auth
 All existing indexing strategy, composite index logic, and referential cascade rules remain unchanged. Only data types and schema namespace adjusted for PostgreSQL.
 
 Awaiting your directive to proceed with DDL generation under the PostgreSQL two-schema architecture.
+
+PM: Chandra, I have finalized the column additions for both schemas based on our recent architectural discussions. 
+
+Additionally, I have made a critical domain decision regarding access control: We are dropping the roles and user_roles junction tables entirely. This database is strictly for the passenger-facing booking application, meaning every registered identity defaults to a standard "User". Employee and Admin portals will be handled via a completely separate web application and infrastructure in the future. 
+
+Review the finalized structures for both schemas below.
+
+--- UPDATED BLUEPRINT ---
+
+SCHEMA: identity
+(Roles tables removed. Consists only of the core passenger identity table).
+
+TABLE: users
+- user_id: SERIAL PRIMARY KEY
+- full_name: VARCHAR(100) NOT NULL
+- username: VARCHAR(50) NOT NULL UNIQUE
+- email: VARCHAR(255) NOT NULL UNIQUE
+- mobile_number: VARCHAR(15) NOT NULL UNIQUE
+- password_hash: VARCHAR(255) NOT NULL
+- date_of_birth: DATE NOT NULL
+- gender: CHAR(1) NOT NULL
+- status: SMALLINT NOT NULL DEFAULT 1
+- failed_login_attempts: SMALLINT NOT NULL DEFAULT 0
+- account_locked_until: TIMESTAMPTZ(3) NULL
+- is_email_verified: BOOLEAN NOT NULL DEFAULT FALSE
+- is_mobile_verified: BOOLEAN NOT NULL DEFAULT FALSE
+- created_at: TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
+
+SCHEMA: auth
+(Enhanced for strict enterprise-level security, idle tracking, and audit logging).
+
+TABLE: user_sessions
+- session_id: UUID PRIMARY KEY
+- user_id: INTEGER NOT NULL (FK to identity.users ON DELETE CASCADE)
+- ip_address: VARCHAR(45) NOT NULL
+- user_agent: TEXT NOT NULL
+- device_id: VARCHAR(255) NULL
+- last_activity_at: TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
+- login_time: TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
+- expires_at: TIMESTAMPTZ(3) NOT NULL
+
+TABLE: login_history
+- log_id: BIGSERIAL PRIMARY KEY
+- user_id: INTEGER NOT NULL (FK to identity.users ON DELETE CASCADE)
+- ip_address: VARCHAR(45) NOT NULL
+- user_agent: TEXT NOT NULL
+- geo_location: VARCHAR(255) NULL
+- login_method: VARCHAR(50) NOT NULL
+- login_time: TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
+- status: SMALLINT NOT NULL
+- failure_reason: VARCHAR(100) NULL
+
+TABLE: password_reset
+- reset_id: SERIAL PRIMARY KEY
+- user_id: INTEGER NOT NULL (FK to identity.users ON DELETE CASCADE)
+- token: VARCHAR(255) NOT NULL UNIQUE
+- request_ip: VARCHAR(45) NOT NULL
+- reset_channel: VARCHAR(50) NOT NULL
+- is_used: BOOLEAN NOT NULL DEFAULT FALSE
+- created_at: TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
+- expires_at: TIMESTAMPTZ(3) NOT NULL
+
+STRICT DIRECTIVE: Do not write any SQL queries or generate DDL yet. Review this updated blueprint, confirm the constraints, and acknowledge the removal of the role tables. Await my final approval before writing any code.

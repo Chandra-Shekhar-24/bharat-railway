@@ -71,3 +71,92 @@ PM: Analysis of your technical proposal is accepted. However, the current bluepr
 5. Review: Ensure the blueprint covers all Phase 1 dependencies including the junction table and refined status implementation strategies.
 
 I am strictly in reviewer mode. Do not proceed to DDL generation until the architectural blueprint is finalized and submitted for my final approval. Refine the schema architecture and submit the updated blueprint.
+
+DB: Acknowledged, Koushal. Submitting the finalized Phase 1 schema blueprint with all directives integrated.
+
+--- FINALIZED PHASE 1 SCHEMA BLUEPRINT: booking_db ---
+
+TABLE: users
+  user_id       INT UNSIGNED      PRIMARY KEY, AUTO_INCREMENT
+  username      VARCHAR(50)       NOT NULL, UNIQUE
+  email         VARCHAR(255)      NOT NULL, UNIQUE
+  password_hash VARCHAR(255)      NOT NULL
+  status        TINYINT(1)        NOT NULL DEFAULT 1
+  created_at    TIMESTAMP(3)      NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
+
+Status Map: 1=active, 0=inactive, 2=suspended. TINYINT(1) as per PM directive for application-level constant mapping.
+
+TABLE: roles
+  role_id       TINYINT UNSIGNED  PRIMARY KEY, AUTO_INCREMENT
+  role_name     VARCHAR(50)       NOT NULL, UNIQUE
+  permissions   JSON              NOT NULL
+
+Permissions stored as JSON for schema flexibility. Pre-validated at application layer. Avoids EAV anti-pattern.
+
+TABLE: user_roles
+  user_id       INT UNSIGNED      NOT NULL
+  role_id       TINYINT UNSIGNED  NOT NULL
+  assigned_at   TIMESTAMP(3)      NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
+
+PRIMARY KEY (user_id, role_id)
+FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+FOREIGN KEY (role_id) REFERENCES roles(role_id) ON DELETE CASCADE
+
+Resolves M:N relationship. Both FKs cascade on delete.
+
+TABLE: user_sessions
+  session_id    CHAR(36)          PRIMARY KEY
+  user_id       INT UNSIGNED      NOT NULL
+  login_time    TIMESTAMP(3)      NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
+  ip_address    VARCHAR(45)       NOT NULL
+
+FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+INDEX idx_user_sessions_lookup (user_id, login_time DESC)
+INDEX idx_ip_address (ip_address)
+
+UUID-based session IDs. VARCHAR(45) for IP per PM directive.
+
+TABLE: login_history
+  log_id        BIGINT UNSIGNED   PRIMARY KEY, AUTO_INCREMENT
+  user_id       INT UNSIGNED      NOT NULL
+  login_time    TIMESTAMP(3)      NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
+  ip_address    VARCHAR(45)       NOT NULL
+  status        TINYINT(1)        NOT NULL
+
+FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+INDEX idx_login_history_user (user_id, login_time DESC)
+INDEX idx_login_history_status (status, login_time DESC)
+
+Status Map: 1=success, 0=failure. BIGINT for high-volume log writes.
+
+TABLE: password_reset
+  reset_id      INT UNSIGNED      PRIMARY KEY, AUTO_INCREMENT
+  user_id       INT UNSIGNED      NOT NULL
+  token         VARCHAR(255)      NOT NULL
+  expires_at    TIMESTAMP(3)      NOT NULL
+  created_at    TIMESTAMP(3)      NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
+
+FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+UNIQUE INDEX idx_token (token)
+INDEX idx_user_reset (user_id, expires_at)
+
+Stores bcrypt-hashed tokens. UNIQUE index prevents hash collisions.
+
+--- INDEX SUMMARY ---
+users.email                        -> UNIQUE INDEX
+users.username                     -> UNIQUE INDEX
+user_roles.user_id, role_id        -> PRIMARY KEY (composite)
+user_sessions.user_id, login_time  -> COMPOSITE INDEX (DESC)
+user_sessions.ip_address           -> INDEX
+login_history.user_id, login_time  -> COMPOSITE INDEX (DESC)
+login_history.status, login_time   -> COMPOSITE INDEX (DESC)
+password_reset.token               -> UNIQUE INDEX
+password_reset.user_id, expires_at -> COMPOSITE INDEX
+
+--- REFERENTIAL INTEGRITY ---
+All child tables (user_roles, user_sessions, login_history, password_reset) reference users.user_id with ON DELETE CASCADE. No SET NULL or RESTRICT constraints required for Phase 1.
+
+--- NORMALIZATION ---
+3NF compliant. JSON permissions column in roles table is an accepted denormalization for document-centric ACL storage. No transitive dependencies across the module.
+
+Blueprint complete. Awaiting final approval before DDL generation.

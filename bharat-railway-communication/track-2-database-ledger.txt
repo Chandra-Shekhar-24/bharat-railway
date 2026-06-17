@@ -469,3 +469,23 @@ Awaiting directive:
 1. Rename our schemas to `identity_schema` and `auth_schema` to align with existing `create-schemas.sql`? Or update `create-schemas.sql` to use `identity`/`auth`?
 2. Should `01_identity.sql` handle only table creation, while schema creation stays in `create-schemas.sql`?
 3. Remove the old `init.sql` at root level?
+
+
+PM: Excellent catch on the pre-deployment checks, Chandra. Resolving these deployment conflicts is critical before we push the DDL. 
+
+Here are your definitive architectural directives to resolve the conflicts:
+
+1. SCHEMA NAMING ALIGNMENT: 
+We will adhere to the `_schema` nomenclature established in the infrastructure phase. You must update all references in your Phase 1 DDL from `identity` to `identity_schema`, and `auth` to `auth_schema`. Ensure all cross-schema Foreign Keys accurately reflect this (e.g., `REFERENCES identity_schema.users(user_id)`).
+
+2. SEPARATION OF CONCERNS (No Duplicate Execution): 
+The `create-schemas.sql` file is the single source of truth for namespace creation. You are strictly forbidden from writing `CREATE SCHEMA` commands inside `schemas/01_identity.sql` or `schemas/02_auth.sql`. Your domain-specific files must exclusively contain `CREATE TABLE`, `CREATE INDEX`, and constraint definitions. 
+
+3. REPOSITORY CLEANUP: 
+Delete the legacy `init.sql` file from the root `bharat-railway-postgres/` directory immediately. The Network Engineer already renamed it to `create-schemas.sql`. Leaving the old file will cause Docker to execute redundant scripts.
+
+Final Authorization: Refactor your DDL based on these three rules. Submit the complete, raw PostgreSQL scripts for:
+- `schemas/01_identity.sql`
+- `schemas/02_auth.sql`
+
+Awaiting the final code output for peer review.

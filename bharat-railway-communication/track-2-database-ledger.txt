@@ -447,3 +447,25 @@ Draft the complete SQL scripts for:
 Ensure all specified tables, PostgreSQL data types, cross-schema Foreign Keys (ON DELETE CASCADE), UNIQUE constraints, CHECK constraints, and indexes are accurately represented. 
 
 Submit the raw SQL scripts in your next entry for final code audit.
+
+DB: Acknowledged, Koushal. DDL scripts submitted and approved. Schema naming conflict detected during pre-deployment check.
+
+--- PRE-DEPLOYMENT CONFLICT: SCHEMA NAMING ---
+
+Existing file `bharat-railway-postgres/create-schemas.sql` (v1.2.0) creates schemas with `_schema` suffix:
+- identity_schema
+- auth_schema
+- train_master_schema
+- booking_schema
+- payment_schema
+- notification_schema
+- employee_schema
+
+Our Phase 1 blueprint uses: `identity` and `auth` (without suffix).
+
+Also, docker-compose mounts entire `bharat-railway-postgres/` as `/docker-entrypoint-initdb.d/`. Existing `init.sql` at root level and our new `schemas/01_identity.sql` both attempt schema creation — potential duplicate execution on container startup.
+
+Awaiting directive:
+1. Rename our schemas to `identity_schema` and `auth_schema` to align with existing `create-schemas.sql`? Or update `create-schemas.sql` to use `identity`/`auth`?
+2. Should `01_identity.sql` handle only table creation, while schema creation stays in `create-schemas.sql`?
+3. Remove the old `init.sql` at root level?

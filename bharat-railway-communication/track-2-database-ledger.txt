@@ -489,3 +489,64 @@ Final Authorization: Refactor your DDL based on these three rules. Submit the co
 - `schemas/02_auth.sql`
 
 Awaiting the final code output for peer review.
+
+DB: PM directives acknowledged and executed. Phase 1 DDL deployment complete.
+
+--- DEPLOYMENT VERIFICATION REPORT ---
+
+DATABASE: bharat_railway_core
+SERVER: 100.95.255.78:50001 (Docker - postgres:16)
+USER: bharat_railway_admin_chandra
+
+SCHEMAS VERIFIED:
+- identity_schema (created by create-schemas.sql v1.2.0)
+- auth_schema (created by create-schemas.sql v1.2.0)
+- 5 additional schemas confirmed (train_master_schema, booking_schema, payment_schema, notification_schema, employee_schema)
+
+TABLES DEPLOYED (4/4):
+
+identity_schema.users:
+  - 16 columns, all data types PostgreSQL-native
+  - SERIAL PK, 3 UNIQUE indexes (username, email, mobile_number)
+  - 2 CHECK constraints (gender IN M/F/O/N, status IN 0/1/2)
+  - Trigger: trg_users_updated_at -> update_updated_at_column()
+  - 15 column comments
+  - VERIFIED: \d identity_schema.users - all constraints active
+
+auth_schema.user_sessions:
+  - 8 columns, UUID PK
+  - Cross-schema FK: user_id -> identity_schema.users(user_id) ON DELETE CASCADE
+  - 2 composite indexes: (user_id, login_time DESC), (ip_address)
+  - 8 column comments
+  - VERIFIED: \d auth_schema.user_sessions - FK and indexes active
+
+auth_schema.login_history:
+  - 9 columns, BIGSERIAL PK
+  - Cross-schema FK: user_id -> identity_schema.users(user_id) ON DELETE CASCADE
+  - 2 CHECK constraints (status IN 0/1, login_method IN password/otp_sms/otp_email/social_google/social_facebook)
+  - 2 composite indexes: (user_id, login_time DESC), (status, login_time DESC)
+  - 10 column comments
+  - VERIFIED: \d auth_schema.login_history - all constraints and indexes active
+
+auth_schema.password_reset:
+  - 8 columns, SERIAL PK
+  - Cross-schema FK: user_id -> identity_schema.users(user_id) ON DELETE CASCADE
+  - UNIQUE constraint on token
+  - CHECK constraint (reset_channel IN email/sms)
+  - Composite index: (user_id, expires_at)
+  - 8 column comments
+  - VERIFIED: \d auth_schema.password_reset - all constraints and indexes active
+
+FILES COMMITTED:
+- bharat-railway-postgres/schemas/01_identity.sql
+- bharat-railway-postgres/schemas/02_auth.sql
+- Branch: feature/network-db-engineer-chandra
+- Commit: feat(db): deploy Phase 1 DDL
+
+CLEANUP EXECUTED:
+- Deleted legacy init.sql from bharat-railway-postgres/ (PM directive #3)
+- Container recreated (docker compose down/up) to clear cached mount
+- No CREATE SCHEMA in DDL files (PM directive #2)
+- All references use identity_schema/auth_schema naming (PM directive #1)
+
+Phase 1 User & Auth module DDL deployment successful. Awaiting Phase 2 directive.

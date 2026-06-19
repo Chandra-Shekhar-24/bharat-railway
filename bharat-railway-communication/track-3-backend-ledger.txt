@@ -1,0 +1,50 @@
+================================================================================
+COMMUNICATION: BACKEND ARCHITECTURE & DEVELOPMENT LEDGER
+================================================================================
+Project: Bharat Railway Booking System
+Branch: feature/backend-developer-hitanshu
+Objective: Phase 1 Backend API (Login, Registration, Forgot Password)
+Protocol: Enterprise-level technical peer-to-peer exchange.
+================================================================================
+
+[COMMUNICATION RULEBOOK & PROTOCOL]
+
+Role Delineation:
+- PM (Koushal Jha): I define the business logic, architectural constraints, API contracts, and audit the final code.
+- BE (Hitanshu Dhakrey): Lead Backend Developer. Responsible for Java 21 / Spring Boot 3 implementation, Domain-Driven Design (DDD), security, and core application logic.
+- DB/Infra (Chandra Shekhar Bansal): Infrastructure support. Responsible for assisting BE with PostgreSQL bindings, Kafka configurations, and Docker network troubleshooting.
+- Scribe: The AI acts solely as a technical scribe to format the ledger based on PM instructions. 
+
+Backend Coding Standards:
+1. Framework: Java 21 with Spring Boot 3.x utilizing Virtual Threads (Project Loom).
+2. Architecture: Domain-Driven Design (DDD). Strict separation between `identity` and `auth` domains.
+3. Database Access: Spring Data JPA/Hibernate talking directly to `identity_schema` and `auth_schema`.
+4. Quality: No dummy data. Strict input validation (Jakarta Validation). Standardized global exception handling mapping to standardized JSON responses.
+
+Flow of Communication:
+- The ledger is updated only upon PM initiation.
+- Every exchange follows: 
+  PM: [Specific Directive / API Contract / Logic Requirement]
+  BE: [Technical Implementation Plan / Code / Acknowledgment]
+- No "Hi/Hello" or AI filler. The dialogue must be purely technical.
+
+================================================================================
+ENTRY #01 - Backend Initialization & Rule Acknowledgement
+================================================================================
+Date: 2026-06-19
+Subject: Phase 1 Onboarding & Protocol Confirmation
+
+[INITIATOR: Project Manager - Koushal Jha]
+Hitanshu, welcome to the backend development track. Chandra has successfully provisioned the infrastructure (PostgreSQL 16, PgBouncer, Kafka, Valkey, MinIO, Prometheus, Loki) and generated the DDL for the `identity_schema` and `auth_schema`.
+
+Your scope for Phase 1 is strictly the Authentication and Identity domains:
+1. Registration API (creating user records with strict validation).
+2. Login API (authenticating credentials, generating JWTs, logging sessions to DB).
+3. Forgot Password Flow (generating secure reset tokens, verifying channels).
+
+Before we draft the `pom.xml` or define the directory structure, read the Communication Rulebook and Backend Coding Standards above. 
+
+Directive for BE: 
+Reply with your technical acknowledgment of these rules. Detail your understanding of how you plan to implement the Domain-Driven Design for this Phase 1 scope, and confirm your understanding of the Java 21/Spring Boot 3 requirement. Do not write any code yet. 
+
+Status: AWAITING BE ACKNOWLEDGMENT and adding your message through BE: 

@@ -47,4 +47,33 @@ Before we draft the `pom.xml` or define the directory structure, read the Commun
 Directive for BE: 
 Reply with your technical acknowledgment of these rules. Detail your understanding of how you plan to implement the Domain-Driven Design for this Phase 1 scope, and confirm your understanding of the Java 21/Spring Boot 3 requirement. Do not write any code yet. 
 
-Status: AWAITING BE ACKNOWLEDGMENT and adding your message through BE: 
+Status: AWAITING BE ACKNOWLEDGMENT
+
+================================================================================
+ENTRY #02 - Phase 1 Business Rules & API Contracts
+Date: 2026-06-19
+Subject: Architecture Correction and Business Logic Definitions
+================================================================================
+
+[PM - Koushal Jha]
+Hitanshu, your DDD plan is approved with one critical infrastructure correction: Do not configure Dual DataSources. 
+
+We are operating within a single PostgreSQL database (`bharat_railway_core`) using logical schemas. Managing distributed transactions across dual DataSources adds unnecessary connection overhead and transaction management complexity. Use a single HikariCP DataSource. Map the domains directly at the entity level using `@Table(schema = "identity_schema", name = "users")` and `@Table(schema = "auth_schema", name = "user_sessions")`.
+
+Here are the strict business rules and API contracts for your implementation:
+
+1. Registration API:
+- Password Policy: Minimum 8 characters, at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character. Enforce this via a custom Jakarta `@Constraint` validator.
+- Flow: Return HTTP 201 Created upon success with an empty body. Do not auto-generate a session. The client must explicitly call the login endpoint post-registration.
+
+2. Login API:
+- JWT Specifications: TTL is strictly 60 minutes. Payload claims must include `user_id`, `username`, and `status`.
+- Audit: Every successful login must generate a UUID for the session, store it in `auth_schema.user_sessions`, and log the event in `auth_schema.login_history`. Account lockout logic (based on failed_login_attempts) must be enforced.
+
+3. Forgot Password Flow:
+- Flow: Do not mock the notification. You must implement a Spring Kafka Producer. Upon generating the secure reset token, push an event payload (userId, email, resetToken, channel) to a Kafka topic named `notification.events`. The future Notification service will consume this.
+
+Directive for BE:
+Based on these finalized rules, provide the exact core `pom.xml` dependencies required for this Java 21/Spring Boot 3 stack. Following that, map out the absolute package directory structure for the `bharat-railway-backend` repository.
+
+----------------------------------------------------------------------------

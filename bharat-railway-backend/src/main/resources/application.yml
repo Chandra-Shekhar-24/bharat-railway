@@ -9,7 +9,8 @@
 #
 # Description:
 # Phase 1 Backend API - Application Configuration.
-# Single DataSource to bharat_railway_core via PgBouncer.
+# Single DataSource to bharat_railway_core via PostgreSQL direct (PgBouncer bypassed
+# temporarily due to extra_float_digits incompatibility with edoburu/pgbouncer).
 # Virtual Threads enabled. Kafka producer for notification events.
 # =============================================================================
 
@@ -22,9 +23,9 @@ spring:
     virtual:
       enabled: true
 
-  # Single DataSource via PgBouncer
+  # Single DataSource via PostgreSQL Direct (TEMP: PgBouncer bypassed)
   datasource:
-    url: jdbc:postgresql://100.95.255.78:50002/bharat_railway_core
+    url: jdbc:postgresql://100.95.255.78:50001/bharat_railway_core?TimeZone=UTC
     username: bharat_railway_admin_chandra
     password: Bhr@tR@il_2026_Secure
     driver-class-name: org.postgresql.Driver

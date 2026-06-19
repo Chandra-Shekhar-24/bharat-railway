@@ -10,44 +10,97 @@ Protocol: Enterprise-level technical peer-to-peer exchange.
 [COMMUNICATION RULEBOOK & PROTOCOL]
 
 Role Delineation:
-- PM (Koushal Jha): I define the business logic, architectural constraints, API contracts, and audit the final code.
-- BE (Hitanshu Dhakrey): Lead Backend Developer. Responsible for Java 21 / Spring Boot 3 implementation, Domain-Driven Design (DDD), security, and core application logic.
-- DB/Infra (Chandra Shekhar Bansal): Infrastructure support. Responsible for assisting BE with PostgreSQL bindings, Kafka configurations, and Docker network troubleshooting.
-- Scribe: The AI acts solely as a technical scribe to format the ledger based on PM instructions. 
+- PM (Koushal Jha): Defines business logic, architectural constraints, API 
+  contracts, and audits final code.
+- BE (Hitanshu Dhakrey): Lead Backend Developer. Responsible for Java 21 / 
+  Spring Boot 3 implementation, Domain-Driven Design (DDD), security, and core 
+  application logic.
+- DB/Infra (Chandra Shekhar Bansal): Infrastructure support. PostgreSQL 
+  bindings, Kafka configurations, Docker network troubleshooting.
+- Scribe: AI acts solely as technical scribe to format the ledger based on PM 
+  instructions.
 
 Backend Coding Standards:
-1. Framework: Java 21 with Spring Boot 3.x utilizing Virtual Threads (Project Loom).
-2. Architecture: Domain-Driven Design (DDD). Strict separation between `identity` and `auth` domains.
-3. Database Access: Spring Data JPA/Hibernate talking directly to `identity_schema` and `auth_schema`.
-4. Quality: No dummy data. Strict input validation (Jakarta Validation). Standardized global exception handling mapping to standardized JSON responses.
+1. Framework: Java 21 with Spring Boot 3.x utilizing Virtual Threads.
+2. Architecture: Domain-Driven Design (DDD). Strict separation between 
+   `identity` and `auth` domains.
+3. Database Access: Spring Data JPA/Hibernate -> `identity_schema` and 
+   `auth_schema`.
+4. Quality: No dummy data. Jakarta Validation. Standardized global exception 
+   handling -> standardized JSON responses.
 
 Flow of Communication:
-- The ledger is updated only upon PM initiation.
+- Ledger updated only upon PM initiation.
 - Every exchange follows: 
-  PM: [Specific Directive / API Contract / Logic Requirement]
+  PM: [Specific Directive]
   BE: [Technical Implementation Plan / Code / Acknowledgment]
-- No "Hi/Hello" or AI filler. The dialogue must be purely technical.
+- No conversational filler. Purely technical.
 
 ================================================================================
 ENTRY #01 - Backend Initialization & Rule Acknowledgement
-================================================================================
 Date: 2026-06-19
 Subject: Phase 1 Onboarding & Protocol Confirmation
+================================================================================
 
-[INITIATOR: Project Manager - Koushal Jha]
-Hitanshu, welcome to the backend development track. Chandra has successfully provisioned the infrastructure (PostgreSQL 16, PgBouncer, Kafka, Valkey, MinIO, Prometheus, Loki) and generated the DDL for the `identity_schema` and `auth_schema`.
+[PM - Koushal Jha]
+Hitanshu, welcome to the backend development track. Chandra has successfully 
+provisioned the infrastructure (PostgreSQL 16, PgBouncer, Kafka, Valkey, 
+MinIO, Prometheus, Loki) and generated the DDL for the `identity_schema` and 
+`auth_schema`.
 
 Your scope for Phase 1 is strictly the Authentication and Identity domains:
-1. Registration API (creating user records with strict validation).
-2. Login API (authenticating credentials, generating JWTs, logging sessions to DB).
-3. Forgot Password Flow (generating secure reset tokens, verifying channels).
+1. Registration API
+2. Login API
+3. Forgot Password Flow
 
-Before we draft the `pom.xml` or define the directory structure, read the Communication Rulebook and Backend Coding Standards above. 
-
-Directive for BE: 
-Reply with your technical acknowledgment of these rules. Detail your understanding of how you plan to implement the Domain-Driven Design for this Phase 1 scope, and confirm your understanding of the Java 21/Spring Boot 3 requirement. Do not write any code yet. 
+Reply with your technical acknowledgment of the rules. Detail your DDD 
+implementation plan for Phase 1. Confirm Java 21/Spring Boot 3. 
+Do not write any code yet.
 
 Status: AWAITING BE ACKNOWLEDGMENT
+
+----------------------------------------------------------------------------
+
+[BE - Hitanshu Dhakrey]
+ACKNOWLEDGMENT OF PROTOCOL: Confirmed. Strictly technical exchanges. No filler.
+
+DDD IMPLEMENTATION PLAN:
+
+Identity Domain (identity_schema):
+- Aggregate Root: User (profile, password hash, KYC status, account state)
+- Value Objects: Email, MobileNumber, PasswordHash (internal invariants)
+- Repository: UserRepository -> identity_schema tables only
+- Service: UserRegistrationService (creation, duplicate detection, encoding)
+- Zero knowledge of JWT, sessions, or authentication mechanics.
+
+Auth Domain (auth_schema):
+- Aggregate Root: Session (active principal session)
+- Aggregate Root: PasswordResetToken (time-bound, single-use)
+- Repository: SessionRepository, PasswordResetTokenRepository -> auth_schema
+- Service: AuthenticationService (credential validation, JWT generation, 
+  session persistence)
+- Service: PasswordResetService (secure token generation, expiry validation, 
+  delegates password update to identity domain)
+
+Cross-Domain Communication:
+- Application Service: UserAuthFacade orchestrates cross-domain operations
+- Identity exposes read-only projections for auth validation
+- Auth never directly mutates identity aggregates
+
+API Contract Layer:
+- Thin controllers, application service delegation
+- DTOs mapped to defined contracts
+- @RestControllerAdvice for standardized JSON error responses
+
+TECHNICAL STACK:
+- Java 21: spring.threads.virtual.enabled=true for virtual threads
+- Spring Boot 3.4+: spring-boot-starter-data-jpa, spring-boot-starter-security, 
+  spring-boot-starter-validation, jjwt for JWT
+- Dual DataSource config (identity_schema, auth_schema) with HikariCP + PgBouncer
+- Jakarta Bean Validation on all inbound DTOs
+- No dummy data. Live schemas only.
+
+STATUS: READY FOR pom.xml AND DIRECTORY STRUCTURE DEFINITION.
 
 ================================================================================
 ENTRY #02 - Phase 1 Business Rules & API Contracts
@@ -56,24 +109,270 @@ Subject: Architecture Correction and Business Logic Definitions
 ================================================================================
 
 [PM - Koushal Jha]
-Hitanshu, your DDD plan is approved with one critical infrastructure correction: Do not configure Dual DataSources. 
+Hitanshu, your DDD plan is approved with one critical infrastructure correction: 
+Do not configure Dual DataSources. 
 
-We are operating within a single PostgreSQL database (`bharat_railway_core`) using logical schemas. Managing distributed transactions across dual DataSources adds unnecessary connection overhead and transaction management complexity. Use a single HikariCP DataSource. Map the domains directly at the entity level using `@Table(schema = "identity_schema", name = "users")` and `@Table(schema = "auth_schema", name = "user_sessions")`.
+We are operating within a single PostgreSQL database (`bharat_railway_core`) 
+using logical schemas. Managing distributed transactions across dual DataSources 
+adds unnecessary connection overhead and transaction management complexity. Use a 
+single HikariCP DataSource. Map the domains directly at the entity level using 
+`@Table(schema = "identity_schema", name = "users")` and 
+`@Table(schema = "auth_schema", name = "user_sessions")`.
 
 Here are the strict business rules and API contracts for your implementation:
 
 1. Registration API:
-- Password Policy: Minimum 8 characters, at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character. Enforce this via a custom Jakarta `@Constraint` validator.
-- Flow: Return HTTP 201 Created upon success with an empty body. Do not auto-generate a session. The client must explicitly call the login endpoint post-registration.
+- Password Policy: Minimum 8 characters, at least 1 uppercase letter, 1 lowercase 
+  letter, 1 number, and 1 special character. Enforce this via a custom Jakarta 
+  @Constraint validator.
+- Flow: Return HTTP 201 Created upon success with an empty body. Do not 
+  auto-generate a session. The client must explicitly call the login endpoint 
+  post-registration.
 
 2. Login API:
-- JWT Specifications: TTL is strictly 60 minutes. Payload claims must include `user_id`, `username`, and `status`.
-- Audit: Every successful login must generate a UUID for the session, store it in `auth_schema.user_sessions`, and log the event in `auth_schema.login_history`. Account lockout logic (based on failed_login_attempts) must be enforced.
+- JWT Specifications: TTL is strictly 60 minutes. Payload claims must include 
+  user_id, username, and status.
+- Audit: Every successful login must generate a UUID for the session, store it in 
+  auth_schema.user_sessions, and log the event in auth_schema.login_history. 
+  Account lockout logic (based on failed_login_attempts) must be enforced.
 
 3. Forgot Password Flow:
-- Flow: Do not mock the notification. You must implement a Spring Kafka Producer. Upon generating the secure reset token, push an event payload (userId, email, resetToken, channel) to a Kafka topic named `notification.events`. The future Notification service will consume this.
+- Flow: Do not mock the notification. You must implement a Spring Kafka Producer. 
+  Upon generating the secure reset token, push an event payload (userId, email, 
+  resetToken, channel) to a Kafka topic named notification.events. The future 
+  Notification service will consume this.
 
 Directive for BE:
-Based on these finalized rules, provide the exact core `pom.xml` dependencies required for this Java 21/Spring Boot 3 stack. Following that, map out the absolute package directory structure for the `bharat-railway-backend` repository.
+Based on these finalized rules, provide the exact core pom.xml dependencies 
+required for this Java 21/Spring Boot 3 stack. Following that, map out the 
+absolute package directory structure for the bharat-railway-backend repository.
 
 ----------------------------------------------------------------------------
+
+[BE - Hitanshu Dhakrey]
+ARCHITECTURE CORRECTION ACKNOWLEDGED:
+Single DataSource confirmed. Schema-level entity mapping with @Table annotation. 
+Eliminates XA transaction overhead. Cleaner connection management.
+
+================================================================================
+CORE pom.xml DEPENDENCIES
+================================================================================
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+         https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.4.1</version>
+        <relativePath/>
+    </parent>
+    
+    <groupId>in.gov.irctc</groupId>
+    <artifactId>bharat-railway-backend</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <name>Bharat Railway Backend</name>
+    
+    <properties>
+        <java.version>21</java.version>
+        <jjwt.version>0.12.6</jjwt.version>
+    </properties>
+    
+    <dependencies>
+        <!-- Spring Boot Starters -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+        
+        <!-- Kafka -->
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+        </dependency>
+        
+        <!-- JWT (jjwt) -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>${jjwt.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        
+        <!-- PostgreSQL -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        
+        <!-- HikariCP (bundled with Spring Boot, explicit for clarity) -->
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+        </dependency>
+        
+        <!-- Test -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+
+================================================================================
+ABSOLUTE PACKAGE DIRECTORY STRUCTURE
+================================================================================
+
+bharat-railway-backend/
+├── pom.xml
+└── src/
+    ├── main/
+    │   ├── java/
+    │   │   └── in/gov/irctc/bharatrailway/
+    │   │       ├── BharatRailwayApplication.java
+    │   │       │
+    │   │       ├── shared/
+    │   │       │   ├── exception/
+    │   │       │   │   ├── GlobalExceptionHandler.java
+    │   │       │   │   ├── ErrorResponse.java
+    │   │       │   │   └── ResourceAlreadyExistsException.java
+    │   │       │   ├── validation/
+    │   │       │   │   └── ValidPassword.java
+    │   │       │   └── config/
+    │   │       │       ├── SecurityConfig.java
+    │   │       │       └── KafkaProducerConfig.java
+    │   │       │
+    │   │       ├── identity/
+    │   │       │   ├── domain/
+    │   │       │   │   ├── User.java
+    │   │       │   │   ├── Email.java
+    │   │       │   │   ├── MobileNumber.java
+    │   │       │   │   └── PasswordHash.java
+    │   │       │   ├── application/
+    │   │       │   │   ├── UserRegistrationService.java
+    │   │       │   │   ├── UserQueryService.java
+    │   │       │   │   └── dto/
+    │   │       │   │       ├── RegistrationRequest.java
+    │   │       │   │       └── RegistrationResponse.java
+    │   │       │   ├── infrastructure/
+    │   │       │   │   ├── UserRepository.java
+    │   │       │   │   └── PasswordEncoder.java
+    │   │       │   └── presentation/
+    │   │       │       └── RegistrationController.java
+    │   │       │
+    │   │       ├── auth/
+    │   │       │   ├── domain/
+    │   │       │   │   ├── UserSession.java
+    │   │       │   │   ├── LoginHistory.java
+    │   │       │   │   └── PasswordResetToken.java
+    │   │       │   ├── application/
+    │   │       │   │   ├── AuthenticationService.java
+    │   │       │   │   ├── PasswordResetService.java
+    │   │       │   │   ├── JwtService.java
+    │   │       │   │   ├── SessionManager.java
+    │   │       │   │   └── dto/
+    │   │       │   │       ├── LoginRequest.java
+    │   │       │   │       ├── LoginResponse.java
+    │   │       │   │       ├── ForgotPasswordRequest.java
+    │   │       │   │       └── ResetPasswordRequest.java
+    │   │       │   ├── infrastructure/
+    │   │       │   │   ├── UserSessionRepository.java
+    │   │       │   │   ├── LoginHistoryRepository.java
+    │   │       │   │   ├── PasswordResetTokenRepository.java
+    │   │       │   │   └── kafka/
+    │   │       │   │       ├── NotificationEventPublisher.java
+    │   │       │   │       └── NotificationEvent.java
+    │   │       │   └── presentation/
+    │   │       │       ├── LoginController.java
+    │   │       │       └── ForgotPasswordController.java
+    │   │       │
+    │   │       └── application/
+    │   │           └── UserAuthFacade.java
+    │   │
+    │   └── resources/
+    │       ├── application.yml
+    │       └── application-dev.yml
+    │
+    └── test/
+        └── java/
+            └── in/gov/irctc/bharatrailway/
+                ├── identity/
+                │   ├── domain/
+                │   │   └── UserTest.java
+                │   └── application/
+                │       └── UserRegistrationServiceTest.java
+                └── auth/
+                    ├── domain/
+                    │   └── PasswordResetTokenTest.java
+                    └── application/
+                        └── AuthenticationServiceTest.java
+
+================================================================================
+DESIGN NOTES:
+================================================================================
+1. Single DataSource: application.yml will configure one HikariCP pool pointing 
+   to bharat_railway_core. Entity @Table annotations carry schema qualifiers.
+
+2. Password Validation: @ValidPassword (shared/validation) implements 
+   ConstraintValidator<ValidPassword, String> enforcing the 4-rule policy.
+
+3. JWT: JwtService handles generation and validation. 60-minute TTL. Claims: 
+   user_id, username, status.
+
+4. Kafka: NotificationEventPublisher produces to notification.events topic. 
+   Payload carries userId, email, resetToken, channel.
+
+5. Lockout Logic: AuthenticationService checks failed_login_attempts on 
+   User entity before validating credentials. Increment on failure. Reset on 
+   success.
+
+6. DDD Separation: identity/ and auth/ packages are isolated. Cross-domain 
+   orchestration only through application/UserAuthFacade.
+
+STATUS: AWAITING PM APPROVAL OF pom.xml AND DIRECTORY STRUCTURE.
+
+================================================================================
+END OF ENTRY #02
+================================================================================

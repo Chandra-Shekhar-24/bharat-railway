@@ -1,0 +1,75 @@
+# =============================================================================
+# Project: Bharat Railway Booking System
+# Module: bharat-railway-backend
+# Branch: feature/backend-developer-hitanshu
+# Developer: Hitanshu Dhakrey
+# Assisted by: Chandra Shekhar Bansal (Infrastructure), DeepSeek (AI Scribe)
+# Date: 2026-06-19
+# Version: 0.1.0-SNAPSHOT
+#
+# Description:
+# Phase 1 Backend API - Application Configuration.
+# Single DataSource to bharat_railway_core via PostgreSQL direct (PgBouncer bypassed
+# temporarily due to extra_float_digits incompatibility with edoburu/pgbouncer).
+# Virtual Threads enabled. Kafka producer for notification events.
+# =============================================================================
+
+spring:
+  application:
+    name: bharat-railway-backend
+
+  # Virtual Threads (Project Loom) - Java 21
+  threads:
+    virtual:
+      enabled: true
+
+  # Single DataSource via PostgreSQL Direct (TEMP: PgBouncer bypassed)
+  datasource:
+    url: jdbc:postgresql://100.95.255.78:50001/bharat_railway_core?TimeZone=UTC
+    username: bharat_railway_admin_chandra
+    password: Bhr@tR@il_2026_Secure
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+      max-lifetime: 1200000
+      pool-name: BharatRailwayHikariPool
+
+  # JPA / Hibernate
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: public
+    show-sql: false
+    open-in-view: false
+
+  # Kafka Producer
+  kafka:
+    bootstrap-servers: 100.95.255.78:59092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      properties:
+        enable.idempotence: true
+        max.in.flight.requests.per.connection: 5
+    admin:
+      auto-create: false
+
+# Server
+server:
+  port: 8080
+  shutdown: graceful
+
+# Logging
+logging:
+  level:
+    com.bharatrailway: DEBUG
+    org.springframework.security: INFO
+    org.springframework.kafka: INFO

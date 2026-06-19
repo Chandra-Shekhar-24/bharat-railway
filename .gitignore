@@ -1,11 +1,12 @@
-developer name: Chandra Shekhar Bansal
-developer email: chandrashekharbansal.2006@gmail.com
-assisted by: DeepSeek
-current file version: 1.0.3
-version 1.0.0: Initial .gitignore to exclude planning folder and sensitive files.
-version 1.0.1: Add .env to gitignore for secure credential management.
-version 1.0.2: Add .env, loki, prometheus, and promtail to gitignore.
-version 1.0.3: Add communication archive to gitignore.
+# developer name: Chandra Shekhar Bansal
+# developer email: chandrashekharbansal.2006@gmail.com
+# assisted by: DeepSeek
+# current file version: 1.0.4
+# version 1.0.0: Initial .gitignore to exclude planning folder and sensitive files.
+# version 1.0.1: Add .env to gitignore for secure credential management.
+# version 1.0.2: Add .env, loki, prometheus, and promtail to gitignore.
+# version 1.0.3: Add communication archive to gitignore.
+# version 1.0.4: Add backend-specific entries (Maven, IDE, OS, sensitive configs).
 
 # Planning folder - contains sensitive project discussions
 bharat-railway-planning/
@@ -23,3 +24,33 @@ bharat-railway-promtail/
 
 # Communication archive files
 bharat-railway-communication/archive/
+
+# =============================================================================
+# Backend - Maven
+# =============================================================================
+bharat-railway-backend/target/
+bharat-railway-backend/.mvn/
+bharat-railway-backend/mvnw
+bharat-railway-backend/mvnw.cmd
+
+# =============================================================================
+# IDE
+# =============================================================================
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+*~
+
+# =============================================================================
+# OS
+# =============================================================================
+.DS_Store
+Thumbs.db
+
+# =============================================================================
+# Sensitive configs (backend)
+# =============================================================================
+bharat-railway-backend/src/main/resources/application-dev.yml
+bharat-railway-backend/src/main/resources/application-prod.yml

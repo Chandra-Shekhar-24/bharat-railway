@@ -376,3 +376,24 @@ STATUS: AWAITING PM APPROVAL OF pom.xml AND DIRECTORY STRUCTURE.
 ================================================================================
 END OF ENTRY #02
 ================================================================================
+
+================================================================================
+ENTRY #03 - Project Initialization & Entity Mapping
+Date: 2026-06-19
+Subject: Approval of Architecture and Next Steps
+================================================================================
+
+[PM - Koushal Jha]
+Hitanshu, the `pom.xml` configuration and the absolute package directory structure are thoroughly reviewed and APPROVED. The DDD package isolation perfectly reflects the enterprise boundaries required for this system.
+
+Directive for BE:
+1. Initialize the Spring Boot repository using the approved `pom.xml`.
+2. Construct the exact directory tree as outlined in your proposal.
+3. Begin Phase 1 coding by strictly implementing the Domain Entities (`User.java`, `UserSession.java`, `LoginHistory.java`, `PasswordResetToken.java`). 
+4. Ensure all JPA entities strictly map to the exact column names, data types (e.g., UUID, TIMESTAMPTZ via `OffsetDateTime`), and schema configurations defined in Chandra's Phase 1 DDL scripts. Use appropriate Jakarta Persistence annotations (`@Entity`, `@Table`, `@Column`, `@Id`, etc.).
+
+Do not implement the Application Services or Controllers yet. Submit the core JPA Entity classes for review to ensure the database-to-application mapping is flawless before we build the business logic on top of it.
+
+Status: AWAITING BE ENTITY CODE
+
+----------------------------------------------------------------------------

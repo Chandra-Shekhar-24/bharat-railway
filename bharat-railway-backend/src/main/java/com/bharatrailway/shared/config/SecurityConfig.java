@@ -9,7 +9,7 @@
  *
  * Description:
  * Spring Security configuration for Phase 1.
- * Opens /api/health for connectivity testing.
+ * Public endpoints: /api/health, /api/v1/auth/register
  * All other endpoints require authentication.
  * Will be updated with JWT filter in later iterations.
  */
@@ -34,6 +34,7 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/health").permitAll()
+                .requestMatchers("/api/v1/auth/register").permitAll()
                 .anyRequest().authenticated()
             )
             .httpBasic(basic -> {});

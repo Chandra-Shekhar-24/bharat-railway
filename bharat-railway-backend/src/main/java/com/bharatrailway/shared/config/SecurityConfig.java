@@ -9,9 +9,10 @@
  *
  * Description:
  * Spring Security configuration for Phase 1.
- * Public endpoints: /api/health, /api/v1/auth/register, /api/v1/auth/login
+ * Public endpoints: /api/health, /api/v1/auth/register, /api/v1/auth/login,
+ * /api/v1/auth/forgot-password, /api/v1/auth/reset-password
  * All other endpoints require authentication.
- * httpBasic disabled - login handled by custom AuthenticationService.
+ * httpBasic disabled - auth handled by custom services.
  * JWT filter to be added for authenticated endpoints.
  */
 
@@ -37,6 +38,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/health").permitAll()
                 .requestMatchers("/api/v1/auth/register").permitAll()
                 .requestMatchers("/api/v1/auth/login").permitAll()
+                .requestMatchers("/api/v1/auth/forgot-password").permitAll()
+                .requestMatchers("/api/v1/auth/reset-password").permitAll()
                 .anyRequest().authenticated()
             );
 

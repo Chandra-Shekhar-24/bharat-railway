@@ -9,9 +9,10 @@
  *
  * Description:
  * Spring Security configuration for Phase 1.
- * Public endpoints: /api/health, /api/v1/auth/register
+ * Public endpoints: /api/health, /api/v1/auth/register, /api/v1/auth/login
  * All other endpoints require authentication.
- * Will be updated with JWT filter in later iterations.
+ * httpBasic disabled - login handled by custom AuthenticationService.
+ * JWT filter to be added for authenticated endpoints.
  */
 
 package com.bharatrailway.shared.config;
@@ -35,9 +36,9 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/health").permitAll()
                 .requestMatchers("/api/v1/auth/register").permitAll()
+                .requestMatchers("/api/v1/auth/login").permitAll()
                 .anyRequest().authenticated()
-            )
-            .httpBasic(basic -> {});
+            );
 
         return http.build();
     }

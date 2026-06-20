@@ -408,3 +408,183 @@ Remaining Phase 1:
 ================================================================================
 END OF ENTRY #07 - LEDGER CURRENT THROUGH 2026-06-20
 ================================================================================
+
+================================================================================
+ENTRY #08 - Registration API Implementation
+Date: 2026-06-20
+Subject: Registration Request, Service, Controller
+================================================================================
+
+[BE - Hitanshu Dhakrey]
+Registration API implemented per PM business rules.
+
+FILES CREATED:
+
+1. identity/application/dto/RegistrationRequest.java
+   - Jakarta validation: @NotBlank, @Size, @Email, @Pattern (E.164), @ValidPassword, @Past, @Pattern (M/F/O)
+   - Fields: fullName, username, email, mobileNumber, password, dateOfBirth, gender
+
+2. identity/application/UserRegistrationService.java
+   - Duplicate check: existsByUsername, existsByEmail, existsByMobileNumber
+   - Throws ResourceAlreadyExistsException on conflict
+   - BCrypt hashing for password
+   - Default state: status=1 (active), failedLoginAttempts=0, verified=false
+
+3. shared/config/PasswordEncoderConfig.java
+   - BCryptPasswordEncoder bean
+
+4. identity/presentation/RegistrationController.java
+   - POST /api/v1/auth/register -> 201 Created with empty body
+   - No session generation per PM directive
+
+5. shared/config/SecurityConfig.java (updated)
+   - Added /api/v1/auth/register to permitAll
+
+TEST RESULTS:
+- POST /api/v1/auth/register (valid) -> 201 Created
+- POST /api/v1/auth/register (duplicate username) -> 409 Conflict
+- Database verification: identity_schema.users row confirmed with BCrypt hash
+- pgAdmin4: user_id=1, status=1, password_hash=$2a$10$...
+
+STATUS: REGISTRATION API COMPLETE.
+
+================================================================================
+ENTRY #09 - Login API Implementation
+Date: 2026-06-20
+Subject: Login Request/Response, JWT, Authentication Service, Lockout Logic
+================================================================================
+
+[BE - Hitanshu Dhakrey]
+Login API implemented with JWT, session management, audit logging, and lockout.
+
+FILES CREATED:
+
+1. auth/application/dto/LoginRequest.java
+   - @NotBlank username and password
+
+2. auth/application/dto/LoginResponse.java
+   - accessToken, tokenType="Bearer", expiresIn (seconds), sessionId (UUID)
+
+3. auth/application/JwtService.java
+   - HMAC-SHA256 signing
+   - TTL: 60 minutes (3600000 ms)
+   - Claims: user_id, username, status
+   - validateToken, isTokenExpired, getUserId, getUsername, getStatus
+
+4. auth/application/AuthenticationService.java
+   - Validates credentials against BCrypt hash
+   - Account lockout: 5 failed attempts -> 30 minute lock
+   - Session creation: UUID v4, stored in auth_schema.user_sessions
+   - Audit: success logged to auth_schema.login_history (status=1)
+   - Failure: increment failed_login_attempts, log failure reason
+   - CRITICAL FIX: Used @Transactional(propagation = Propagation.REQUIRES_NEW)
+     for incrementFailedAttempts, logFailure, logSuccess, resetFailedAttempts
+     to prevent rollback on exception
+
+5. auth/presentation/LoginController.java
+   - POST /api/v1/auth/login
+   - Extracts IP address and User-Agent from HttpServletRequest
+
+6. shared/config/SecurityConfig.java (updated)
+   - Added /api/v1/auth/login to permitAll
+   - Removed httpBasic() - was intercepting requests before our service
+
+BUG FIX: @Transactional Rollback Issue
+- Problem: @Transactional on login() caused rollback on BadCredentialsException,
+  wiping failed_login_attempts increment and audit log inserts
+- Fix: Removed @Transactional from login(), added REQUIRES_NEW propagation
+  to all failure/success logging methods
+- Result: Failures now persist independently of exception throwing
+
+TEST RESULTS:
+- Successful login -> 200 + JWT + sessionId
+- JWT verified at jwt.io: user_id=1, username=testuser01, status=1
+- Session: auth_schema.user_sessions row created with UUID
+- Invalid password -> 401, failure logged
+- 5 failed attempts -> account_locked_until set, 423 Locked
+- login_history: 5 failure rows + success rows confirmed
+
+STATUS: LOGIN API COMPLETE.
+
+================================================================================
+ENTRY #10 - Forgot Password Flow Implementation
+Date: 2026-06-20
+Subject: Reset Token, Kafka Producer, Password Reset
+================================================================================
+
+[BE - Hitanshu Dhakrey]
+Forgot password flow implemented with Kafka integration.
+
+FILES CREATED:
+
+1. auth/application/dto/ForgotPasswordRequest.java
+   - @Email, @NotBlank channel (email or sms)
+
+2. auth/application/dto/ResetPasswordRequest.java
+   - @NotBlank token, @ValidPassword newPassword
+
+3. auth/infrastructure/kafka/NotificationEvent.java
+   - userId, email, resetToken, channel
+   - JSON serialized for Kafka
+
+4. auth/infrastructure/kafka/NotificationEventPublisher.java
+   - Produces to notification.events topic
+   - Key: email, Value: NotificationEvent JSON
+
+5. auth/application/PasswordResetService.java
+   - initiateReset(): finds user by email, generates UUID token, stores raw,
+     publishes to Kafka, returns generic message (security best practice)
+   - resetPassword(): finds by raw token, validates not used/expired,
+     updates password hash, marks token as used, resets lockout
+   - Token: UUID-UUID format, 15 minute expiry
+
+6. auth/presentation/ForgotPasswordController.java
+   - POST /api/v1/auth/forgot-password -> 200 with message
+   - POST /api/v1/auth/reset-password -> 200 with message
+
+7. shared/config/SecurityConfig.java (updated)
+   - Added /api/v1/auth/forgot-password and /api/v1/auth/reset-password to permitAll
+
+KAFKA VERIFICATION:
+- Topic: notification.events - CREATED and receiving messages
+- Consumer output: {"userId":1,"email":"testuser@bharatrailway.com","resetToken":"bb89ae74-...","channel":"email"}
+
+TEST RESULTS:
+- Forgot password (valid email) -> 200
+- Kafka message consumed: token confirmed
+- Reset password with token -> 200 "Password has been reset successfully"
+- Login with new password -> 200 + JWT
+- password_reset.is_used = true in database
+
+STATUS: FORGOT PASSWORD FLOW COMPLETE.
+
+================================================================================
+PHASE 1 - FINAL STATUS
+================================================================================
+
+All 3 APIs implemented, tested, and verified:
+
+| API | Endpoint | Status |
+|-----|----------|--------|
+| Registration | POST /api/v1/auth/register | 201 Created |
+| Login | POST /api/v1/auth/login | 200 + JWT + Session |
+| Forgot Password | POST /api/v1/auth/forgot-password | 200 + Kafka Event |
+| Reset Password | POST /api/v1/auth/reset-password | 200 |
+
+Database Tables:
+- identity_schema.users: 1 row (testuser01)
+- auth_schema.user_sessions: populated on login
+- auth_schema.login_history: populated on every attempt (success/failure)
+- auth_schema.password_reset: populated on forgot password
+
+Infrastructure Status:
+- PostgreSQL 16.14: Direct connection (50001), PgBouncer bypassed
+- Kafka: notification.events topic active, producer verified
+- Application: Running on port 8080, UTC timezone
+
+Files Created: 26 Java files across 4 packages (shared, identity, auth, application)
+Commits: 16+ per-file commits, all branches synced
+
+================================================================================
+END OF ENTRY #10 - PHASE 1 COMPLETE
+================================================================================

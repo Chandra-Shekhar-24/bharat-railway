@@ -3,18 +3,20 @@
  * Module: bharat-railway-frontend
  * Branch: feature/frontend-developer-chandrashekhar
  * Developer: Chandra Shekhar Bansal
- * Date: 2026-07-19
+ * Date: 2026-09-01
  * Version: 1.0.0
  *
  * Description:
  * Premium sidebar/drawer with user profile header, organized menu items.
  * Displays logged‑in user's full name and email (if available).
+ * Updated Book Ticket navigation to TrainSearchScreen.
  *
  * Version History:
  * version 1.0.0: Initial file creation. Complete redesign: added profile
  *                header, user avatar with initials, email display,
  *                section dividers, improved typography and spacing.
  *                Enhanced JWT parsing to prioritize names with spaces.
+ *                Updated Book Ticket to navigate to TrainSearchScreen.
  */
 
 import 'dart:convert';
@@ -24,7 +26,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../themes/app_theme.dart';
 import '../routes/app_routes.dart';
-import '../screens/book_ticket_screen.dart';
+import '../screens/search/train_search_screen.dart';
 
 class SidebarMenu extends StatelessWidget {
   final VoidCallback onClose;
@@ -200,7 +202,9 @@ class SidebarMenu extends StatelessWidget {
                       onClose();
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const BookTicketScreen()),
+                        MaterialPageRoute(
+                          builder: (context) => const TrainSearchScreen(),
+                        ),
                       );
                     },
                     isActive: true,

@@ -17,7 +17,7 @@
 class ApiConstants {
   // Base URLs
   static const String baseUrlLocal = 'http://localhost:8080';
-  static const String baseUrlEmulator = 'http://100.95.255.78:8080'; // ← Tailscale IP
+static const String baseUrlEmulator = 'http://100.95.255.78:8080';
   static const String baseUrlProd = '';
 
   // Authentication Endpoints

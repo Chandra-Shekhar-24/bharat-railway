@@ -3,16 +3,18 @@
  * Module: bharat-railway-frontend
  * Branch: feature/frontend-developer-chandrashekhar
  * Developer: Chandra Shekhar Bansal
- * Date: 2026-07-19
+ * Date: 2026-09-01
  * Version: 1.0.0
  *
  * Description:
  * Home screen – dashboard with welcome banner, quick action cards.
  * Displays logged‑in user's full name from JWT.
+ * Updated Book Ticket navigation to TrainSearchScreen.
  *
  * Version History:
  * version 1.0.0: Initial file creation. Redesigned UI with smaller cards,
  *                improved spacing, and full name display.
+ *                Updated Book Ticket to navigate to TrainSearchScreen.
  */
 
 import 'dart:math' as math;
@@ -23,7 +25,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../themes/app_theme.dart';
 import '../widgets/sidebar_menu.dart';
-import '../screens/book_ticket_screen.dart';
+import '../screens/search/train_search_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -94,7 +96,6 @@ class _HomeScreenState extends State<HomeScreen>
 
       // Extended list of possible name keys – add your key here as the first entry
       final nameKeys = [
-        // 🔽 After checking the printed JSON, put the correct key here (e.g., 'fullName')
         'fullName',
         'full_name',
         'displayName',
@@ -105,7 +106,6 @@ class _HomeScreenState extends State<HomeScreen>
         'preferred_username',
         'given_name',
         'family_name',
-        // add any other key you see in the payload
       ];
 
       String name = '';
@@ -113,7 +113,6 @@ class _HomeScreenState extends State<HomeScreen>
         if (payload.containsKey(key) && payload[key] is String) {
           final value = payload[key] as String;
           if (value.trim().isNotEmpty) {
-            // Prefer names that contain a space (full name)
             if (value.contains(' ')) {
               name = value;
               break;
@@ -287,7 +286,9 @@ class _HomeScreenState extends State<HomeScreen>
                           } else {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => const BookTicketScreen()),
+                              MaterialPageRoute(
+                                builder: (context) => const TrainSearchScreen(),
+                              ),
                             );
                           }
                         },

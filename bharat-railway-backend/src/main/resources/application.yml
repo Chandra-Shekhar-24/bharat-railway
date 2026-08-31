@@ -12,6 +12,7 @@
 # Single DataSource to bharat_railway_core via PostgreSQL direct (PgBouncer bypassed
 # temporarily due to extra_float_digits incompatibility with edoburu/pgbouncer).
 # Virtual Threads enabled. Kafka producer for notification events.
+# Server binds to all network interfaces (0.0.0.0) so phone via Tailscale can connect.
 # =============================================================================
 
 spring:
@@ -76,9 +77,10 @@ spring:
             enable: true
             required: true
 
-# Server
+# Server – binds to all network interfaces so mobile via Tailscale can access
 server:
   port: 8080
+  address: 0.0.0.0
   shutdown: graceful
 
 # Logging

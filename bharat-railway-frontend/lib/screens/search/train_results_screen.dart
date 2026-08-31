@@ -7,8 +7,7 @@
  * Version: 1.0.0
  *
  * Description:
- * Train search results screen.
- * Shows list of available trains with details.
+ * Train search results screen with Book Now navigation.
  */
 
 import 'package:flutter/material.dart';
@@ -17,6 +16,7 @@ import '../../services/train_service.dart';
 import '../../models/train.dart';
 import '../../models/search_request.dart';
 import '../../themes/app_theme.dart';
+import '../booking/passenger_details_screen.dart';
 import 'train_details_screen.dart';
 
 class TrainResultsScreen extends StatefulWidget {
@@ -279,125 +279,150 @@ class _TrainResultsScreenState extends State<TrainResultsScreen> {
         side: BorderSide(color: Colors.grey[200]!),
       ),
       elevation: 0,
-      child: InkWell(
-        onTap: () => _navigateToDetails(train),
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Train Name & Number
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      train.trainName,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF111827),
-                      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Train Name & Number
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    train.trainName,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF111827),
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1E40AF).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(6),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E40AF).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    train.trainNumber,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1E40AF),
                     ),
-                    child: Text(
-                      train.trainNumber,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            // Departure / Arrival
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        train.departureTime,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF111827),
+                        ),
+                      ),
+                      Text(
+                        train.origin,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Column(
+                    children: [
+                      const Icon(
+                        Icons.arrow_forward,
                         color: Color(0xFF1E40AF),
                       ),
+                      Text(
+                        train.duration,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        train.arrivalTime,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF111827),
+                        ),
+                      ),
+                      Text(
+                        train.destination,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            // Book Now Button
+            SizedBox(
+              width: double.infinity,
+              height: 44,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PassengerDetailsScreen(
+                        trainNumber: train.trainNumber,
+                        trainName: train.trainName,
+                        origin: train.origin,
+                        destination: train.destination,
+                        originCode: widget.searchRequest.origin,
+                        destinationCode: widget.searchRequest.destination,
+                        journeyDate: widget.searchRequest.date,
+                        departureTime: train.departureTime,
+                        arrivalTime: train.arrivalTime,
+                      ),
                     ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1E40AF),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              // Departure / Arrival
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          train.departureTime,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF111827),
-                          ),
-                        ),
-                        Text(
-                          train.origin,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
+                ),
+                child: const Text(
+                  'BOOK NOW',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
                   ),
-                  Expanded(
-                    child: Column(
-                      children: [
-                        const Icon(
-                          Icons.arrow_forward,
-                          color: Color(0xFF1E40AF),
-                        ),
-                        Text(
-                          train.duration,
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          train.arrivalTime,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF111827),
-                          ),
-                        ),
-                        Text(
-                          train.destination,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              // View Details Button
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () => _navigateToDetails(train),
-                  style: TextButton.styleFrom(
-                    foregroundColor: const Color(0xFF1E40AF),
-                  ),
-                  child: const Text('View Details →'),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

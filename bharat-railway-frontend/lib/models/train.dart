@@ -7,7 +7,7 @@
  * Version: 1.0.0
  *
  * Description:
- * Train model for search results and details.
+ * Train model for search results and details with origin/destination codes.
  */
 
 class Train {
@@ -15,6 +15,8 @@ class Train {
   final String trainName;
   final String origin;
   final String destination;
+  final String originCode;
+  final String destinationCode;
   final String departureTime;
   final String arrivalTime;
   final String duration;
@@ -27,6 +29,8 @@ class Train {
     required this.trainName,
     required this.origin,
     required this.destination,
+    required this.originCode,
+    required this.destinationCode,
     required this.departureTime,
     required this.arrivalTime,
     required this.duration,
@@ -41,6 +45,8 @@ class Train {
       trainName: json['trainName'] ?? json['name'] ?? '',
       origin: json['origin'] ?? json['source'] ?? '',
       destination: json['destination'] ?? json['dest'] ?? '',
+      originCode: json['originCode'] ?? json['sourceCode'] ?? json['origin'] ?? '',
+      destinationCode: json['destinationCode'] ?? json['destCode'] ?? json['destination'] ?? '',
       departureTime: json['departureTime'] ?? json['departure'] ?? '',
       arrivalTime: json['arrivalTime'] ?? json['arrival'] ?? '',
       duration: json['duration'] ?? '',

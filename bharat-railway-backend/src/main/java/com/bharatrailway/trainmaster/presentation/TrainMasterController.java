@@ -9,7 +9,7 @@
  *
  * Description:
  * REST controller for Train Master domain.
- * Provides endpoints for stations, trains, routes, and coach composition.
+ * Provides endpoints for stations, trains, routes, coach composition, and seats.
  */
 
 package com.bharatrailway.trainmaster.presentation;
@@ -27,11 +27,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.bharatrailway.trainmaster.application.dto.RouteRequest;
+import com.bharatrailway.trainmaster.application.dto.SeatRequest;
 import com.bharatrailway.trainmaster.application.dto.StationRequest;
 import com.bharatrailway.trainmaster.application.dto.TrainCoachCompositionRequest;
 import com.bharatrailway.trainmaster.application.dto.TrainRequest;
 import com.bharatrailway.trainmaster.application.service.TrainMasterService;
 import com.bharatrailway.trainmaster.domain.Route;
+import com.bharatrailway.trainmaster.domain.Seat;
 import com.bharatrailway.trainmaster.domain.Station;
 import com.bharatrailway.trainmaster.domain.Train;
 import com.bharatrailway.trainmaster.domain.TrainCoachComposition;
@@ -138,5 +140,25 @@ public class TrainMasterController {
             @PathVariable String trainNumber,
             @PathVariable String coachClass) {
         return ResponseEntity.ok(trainMasterService.getCoachCompositionByTrainAndClass(trainNumber, coachClass));
+    }
+
+    // ========== SEAT ENDPOINTS ==========
+
+    @PostMapping("/seats")
+    public ResponseEntity<Seat> createSeat(@Valid @RequestBody SeatRequest request) {
+        Seat seat = trainMasterService.createSeat(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(seat);
+    }
+
+    @GetMapping("/seats/train/{trainNumber}/class/{coachClass}")
+    public ResponseEntity<List<Seat>> getSeatsByTrainAndClass(
+            @PathVariable String trainNumber,
+            @PathVariable String coachClass) {
+        return ResponseEntity.ok(trainMasterService.getSeatsByTrainAndClass(trainNumber, coachClass));
+    }
+
+    @GetMapping("/seats/train/{trainNumber}")
+    public ResponseEntity<List<Seat>> getSeatsByTrain(@PathVariable String trainNumber) {
+        return ResponseEntity.ok(trainMasterService.getSeatsByTrain(trainNumber));
     }
 }

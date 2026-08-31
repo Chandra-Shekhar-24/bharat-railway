@@ -9,7 +9,7 @@
  *
  * Description:
  * REST controller for Train Master domain.
- * Provides endpoints for stations and trains.
+ * Provides endpoints for stations, trains, and routes.
  */
 
 package com.bharatrailway.trainmaster.presentation;
@@ -26,9 +26,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.bharatrailway.trainmaster.application.dto.RouteRequest;
 import com.bharatrailway.trainmaster.application.dto.StationRequest;
 import com.bharatrailway.trainmaster.application.dto.TrainRequest;
 import com.bharatrailway.trainmaster.application.service.TrainMasterService;
+import com.bharatrailway.trainmaster.domain.Route;
 import com.bharatrailway.trainmaster.domain.Station;
 import com.bharatrailway.trainmaster.domain.Train;
 
@@ -43,6 +45,8 @@ public class TrainMasterController {
     public TrainMasterController(TrainMasterService trainMasterService) {
         this.trainMasterService = trainMasterService;
     }
+
+    // ========== STATION ENDPOINTS ==========
 
     @PostMapping("/stations")
     public ResponseEntity<Station> createStation(@Valid @RequestBody StationRequest request) {
@@ -70,6 +74,8 @@ public class TrainMasterController {
         return ResponseEntity.ok(trainMasterService.getStationsByState(state));
     }
 
+    // ========== TRAIN ENDPOINTS ==========
+
     @PostMapping("/trains")
     public ResponseEntity<Train> createTrain(@Valid @RequestBody TrainRequest request) {
         Train train = trainMasterService.createTrain(request);
@@ -90,5 +96,23 @@ public class TrainMasterController {
     public ResponseEntity<List<Train>> searchTrains(@RequestParam String origin,
                                                      @RequestParam String destination) {
         return ResponseEntity.ok(trainMasterService.getTrainsByRoute(origin, destination));
+    }
+
+    // ========== ROUTE ENDPOINTS ==========
+
+    @PostMapping("/routes")
+    public ResponseEntity<Route> createRoute(@Valid @RequestBody RouteRequest request) {
+        Route route = trainMasterService.createRoute(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(route);
+    }
+
+    @GetMapping("/routes/train/{trainNumber}")
+    public ResponseEntity<List<Route>> getRoutesByTrain(@PathVariable String trainNumber) {
+        return ResponseEntity.ok(trainMasterService.getRoutesByTrain(trainNumber));
+    }
+
+    @GetMapping("/routes/station/{stationCode}")
+    public ResponseEntity<List<Route>> getRoutesByStation(@PathVariable String stationCode) {
+        return ResponseEntity.ok(trainMasterService.getRoutesByStation(stationCode));
     }
 }

@@ -2,10 +2,11 @@
 developer name: Chandra Shekhar Bansal
 developer email: chandrashekharbansal.2006@gmail.com
 assisted by: DeepSeek
-current file version: 1.2.0
+current file version: 1.3.0
 version 1.0.0: Initial schema creation for Bharat Railway Booking System.
 version 1.1.0: Renamed schemas from *_db to *_schema for clarity. File renamed to create-schemas.sql.
 version 1.2.0: Expanded to 7 schemas as per PM final roadmap.
+version 1.3.0: Added 3 new schemas (fare_schema, audit_schema, financial_schema).
 */
 
 -- Creates application schemas for modular data isolation
@@ -17,4 +18,7 @@ CREATE SCHEMA IF NOT EXISTS train_master_schema;
 CREATE SCHEMA IF NOT EXISTS booking_schema;
 CREATE SCHEMA IF NOT EXISTS payment_schema;
 CREATE SCHEMA IF NOT EXISTS notification_schema;
+CREATE SCHEMA IF NOT EXISTS fare_schema;
 CREATE SCHEMA IF NOT EXISTS employee_schema;
+CREATE SCHEMA IF NOT EXISTS audit_schema;
+CREATE SCHEMA IF NOT EXISTS financial_schema;

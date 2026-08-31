@@ -9,7 +9,7 @@
  *
  * Description:
  * Application service for Train Master domain.
- * Handles CRUD operations for stations and trains.
+ * Handles CRUD operations for stations, trains, and routes.
  */
 
 package com.bharatrailway.trainmaster.application.service;
@@ -21,10 +21,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.bharatrailway.shared.exception.ResourceAlreadyExistsException;
+import com.bharatrailway.trainmaster.application.dto.RouteRequest;
 import com.bharatrailway.trainmaster.application.dto.StationRequest;
 import com.bharatrailway.trainmaster.application.dto.TrainRequest;
+import com.bharatrailway.trainmaster.domain.Route;
 import com.bharatrailway.trainmaster.domain.Station;
 import com.bharatrailway.trainmaster.domain.Train;
+import com.bharatrailway.trainmaster.infrastructure.RouteRepository;
 import com.bharatrailway.trainmaster.infrastructure.StationRepository;
 import com.bharatrailway.trainmaster.infrastructure.TrainRepository;
 
@@ -33,11 +36,14 @@ public class TrainMasterService {
 
     private final StationRepository stationRepository;
     private final TrainRepository trainRepository;
+    private final RouteRepository routeRepository;
 
     public TrainMasterService(StationRepository stationRepository,
-                              TrainRepository trainRepository) {
+                              TrainRepository trainRepository,
+                              RouteRepository routeRepository) {
         this.stationRepository = stationRepository;
         this.trainRepository = trainRepository;
+        this.routeRepository = routeRepository;
     }
 
     // ========== STATION OPERATIONS ==========
@@ -133,5 +139,44 @@ public class TrainMasterService {
 
     public List<Train> getTrainsByRoute(String origin, String destination) {
         return trainRepository.findByOriginStationCodeAndDestinationStationCode(origin, destination);
+    }
+
+    // ========== ROUTE OPERATIONS ==========
+
+    @Transactional
+    public Route createRoute(RouteRequest request) {
+        if (routeRepository.existsByTrainNumberAndStationCode(request.getTrainNumber(), request.getStationCode())) {
+            throw new ResourceAlreadyExistsException("Route", "train_station",
+                    request.getTrainNumber() + "-" + request.getStationCode());
+        }
+
+        Route route = new Route();
+        route.setTrainNumber(request.getTrainNumber());
+        route.setStationCode(request.getStationCode());
+        route.setSequenceNumber(request.getSequenceNumber());
+        route.setArrivalTime(request.getArrivalTime());
+        route.setDepartureTime(request.getDepartureTime());
+        route.setHaltDuration(request.getHaltDuration());
+        route.setDistanceFromOrigin(request.getDistanceFromOrigin());
+        route.setDayNumber(request.getDayNumber());
+        route.setPlatformNumber(request.getPlatformNumber());
+        route.setIsCommercialStop(request.getIsCommercialStop());
+        route.setIsTechnicalHalt(request.getIsTechnicalHalt());
+        route.setIsOriginatingStation(request.getIsOriginatingStation());
+        route.setIsTerminatingStation(request.getIsTerminatingStation());
+        route.setIsMajorJunction(request.getIsMajorJunction());
+        route.setBookingQuota(request.getBookingQuota());
+        route.setWaitingListQuota(request.getWaitingListQuota());
+        route.setCreatedAt(OffsetDateTime.now());
+
+        return routeRepository.save(route);
+    }
+
+    public List<Route> getRoutesByTrain(String trainNumber) {
+        return routeRepository.findByTrainNumberOrderBySequenceNumberAsc(trainNumber);
+    }
+
+    public List<Route> getRoutesByStation(String stationCode) {
+        return routeRepository.findByStationCode(stationCode);
     }
 }

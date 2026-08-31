@@ -8,7 +8,8 @@
  * Version: 0.1.0-SNAPSHOT
  *
  * Description:
- * Spring Data JPA repository for train_master_schema.routes.
+ * JPA Entity mapped to train_master_schema.train_coach_composition.
+ * Coach layout per train.
  */
 
 package com.bharatrailway.trainmaster.domain;
@@ -21,6 +22,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(schema = "train_master_schema", name = "train_coach_composition")
@@ -40,6 +44,7 @@ public class TrainCoachComposition {
     @Column(name = "number_of_coaches", nullable = false)
     private Short numberOfCoaches;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "coach_numbers", columnDefinition = "jsonb")
     private String coachNumbers;
 

@@ -1,0 +1,65 @@
+================================================================================
+COMMUNICATION: FRONTEND ARCHITECTURE & DEVELOPMENT LEDGER
+================================================================================
+Project: Bharat Railway Booking System
+Branch: feature/frontend-developer-chandrashekhar
+Objective: Phase 1 Frontend SPA (Login, Registration, Forgot Password)
+Protocol: Enterprise-level technical peer-to-peer exchange.
+================================================================================
+
+[COMMUNICATION RULEBOOK & PROTOCOL]
+
+Role Delineation:
+- PM (Koushal Jha): Defines UI/UX flows, architectural constraints, and audits final code.
+- Full-Stack Lead (Chandrashekhar Bansal): Responsible for React architecture, state management, UI/UX implementation, AND backend/infra integration.
+- Scribe: AI acts solely as technical scribe to format the ledger based on PM instructions.
+
+Flow of Communication:
+- Ledger updated only upon PM initiation.
+- Every exchange follows: 
+  PM: [Specific Directive / UI Requirement]
+  FE: [Technical Implementation Plan / Code / Acknowledgment]
+- No conversational filler. Purely technical.
+
+================================================================================
+ENTRY #01 - Frontend Initialization, Architecture Rules & Git Protocol
+Date: 2026-07-05
+Subject: Phase 1 UI Onboarding & Strict Regulations
+================================================================================
+
+[PM - Koushal Jha]
+Chandrashekhar, welcome to the frontend development track. Since you built the infrastructure and backend, you know the APIs are live on port 8080. Your scope for Phase 1 is to build the user interfaces (Registration, Login, Forgot Password) that consume your own APIs. 
+
+Before we initialize the application, you must strictly adhere to the following enterprise regulations for the frontend architecture. Read carefully and verify your understanding.
+
+1. DIRECTORY STRUCTURE PROTOCOL:
+- `src/components/`: Only reusable, stateless UI components (Buttons, Inputs, Modals, Navbar).
+- `src/pages/`: Smart components representing exact routes (LoginPage, RegisterPage, ForgotPasswordPage).
+- `src/services/`: All Axios API calls communicating with the backend at `http://localhost:8080`. Absolutely NO API logic or fetch calls inside UI components.
+- `src/context/` or `src/store/`: Global state management for JWT tokens, user session details, and authentication state.
+- `src/utils/`: Helper functions (regex validators, date formatters, error parsers).
+- `src/assets/`: Static images and icons referencing the `bharat-railway-planning/` directory.
+
+2. CODING PROTOCOLS:
+- Framework: React.js initialized via Vite.
+- Styling: Tailwind CSS. You must strictly use the hex codes provided in `bharat-railway-planning/color/color.txt`.
+- API Integration: Use Axios. You must configure an Axios Interceptor to automatically attach the `Bearer` JWT token to protected requests and handle `401 Unauthorized` responses gracefully (e.g., auto-logout).
+- Form Handling: Proper validation on the client-side before submission. Error states must map perfectly to the backend's standardized `ErrorResponse` JSON.
+
+3. ISSUE ESCALATION & COMMUNICATION:
+Even though you are handling the Full-Stack, you must maintain discipline and document issues logically in this ledger to preserve the project history.
+- API Mismatch Format: "FE -> BE: Expected HTTP 200, received 400. Payload sent: {...}"
+- Infra Issue Format: "FE -> Infra: CORS preflight request failing on port 8080. Need backend SecurityConfig updated."
+- For all UI/UX or architectural approvals -> Route directly to me (PM).
+
+4. GIT COMMIT WORKFLOW:
+You must use conventional commits to push code to `feature/frontend-developer-chandrashekhar`:
+- `feat(ui): added login page structure`
+- `feat(api): integrated axios interceptors for auth`
+- `fix(ui): resolved tailwind responsive layout on mobile`
+
+Directive:
+Reply with a point-by-point verification of these rules. Outline your core `package.json` dependencies (e.g., React Router, Axios) and your proposed `src/` folder tree for Phase 1. Do not write the functional React code until I approve your structure.
+
+Status: AWAITING FE VERIFICATION
+----------------------------------------------------------------------------

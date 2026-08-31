@@ -61,10 +61,7 @@ public class AuthenticationService {
 
     public LoginResponse login(LoginRequest request, String ipAddress, String userAgent) {
         User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> {
-                    logFailureNoUser(request.getUsername(), ipAddress, userAgent, "User not found");
-                    return new BadCredentialsException("Invalid username or password");
-                });
+                .orElseThrow(() -> new BadCredentialsException("Invalid username or password"));
 
         if (user.getStatus() == 0) {
             logFailure(user, ipAddress, userAgent, "Account inactive");
@@ -150,19 +147,6 @@ public class AuthenticationService {
         log.setLoginTime(OffsetDateTime.now());
         log.setStatus((short) 0);
         log.setFailureReason(reason);
-        loginHistoryRepository.save(log);
-    }
-
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void logFailureNoUser(String username, String ipAddress, String userAgent, String reason) {
-        LoginHistory log = new LoginHistory();
-        log.setUserId(0);
-        log.setIpAddress(ipAddress);
-        log.setUserAgent(userAgent);
-        log.setLoginMethod("password");
-        log.setLoginTime(OffsetDateTime.now());
-        log.setStatus((short) 0);
-        log.setFailureReason(reason + " - username: " + username);
         loginHistoryRepository.save(log);
     }
 

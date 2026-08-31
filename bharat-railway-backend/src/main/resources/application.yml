@@ -62,6 +62,20 @@ spring:
     admin:
       auto-create: false
 
+  # Email Configuration (Gmail SMTP)
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: chandrashekharbansal.2006@gmail.com
+    password: fjurojcztayeagwx
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
 # Server
 server:
   port: 8080

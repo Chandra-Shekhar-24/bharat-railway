@@ -8,67 +8,43 @@
  * Version: 0.1.0-SNAPSHOT
  *
  * Description:
- * JPA Entity mapped to train_master_schema.train_coach_composition.
- * Coach layout per train.
+ * Train coach composition request DTO.
  */
 
-package com.bharatrailway.trainmaster.domain;
+package com.bharatrailway.trainmaster.application.dto;
 
 import java.time.LocalDate;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
+public class TrainCoachCompositionRequest {
 
-@Entity
-@Table(schema = "train_master_schema", name = "train_coach_composition")
-public class TrainCoachComposition {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "composition_id")
-    private Integer compositionId;
-
-    @Column(name = "train_number", length = 5, nullable = false)
+    @NotBlank(message = "Train number is required")
+    @Size(max = 5, message = "Train number must not exceed 5 characters")
     private String trainNumber;
 
-    @Column(name = "coach_class", length = 3, nullable = false)
+    @NotBlank(message = "Coach class is required")
+    @Size(max = 3, message = "Coach class must not exceed 3 characters")
     private String coachClass;
 
-    @Column(name = "number_of_coaches", nullable = false)
+    @NotNull(message = "Number of coaches is required")
+    @Min(value = 1, message = "Number of coaches must be at least 1")
     private Short numberOfCoaches;
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "coach_numbers", columnDefinition = "jsonb")
     private String coachNumbers;
 
-    @Column(name = "coach_position_from_engine", nullable = false)
-    private Short coachPositionFromEngine;
+    private Short coachPositionFromEngine = 1;
 
-    @Column(name = "has_disabled_access", nullable = false)
-    private Boolean hasDisabledAccess;
+    private Boolean hasDisabledAccess = false;
 
-    @Column(name = "effective_from", nullable = false)
-    private LocalDate effectiveFrom;
+    private LocalDate effectiveFrom = LocalDate.now();
 
-    @Column(name = "effective_to")
     private LocalDate effectiveTo;
 
-    public TrainCoachComposition() {
-    }
-
-    public Integer getCompositionId() {
-        return compositionId;
-    }
-
-    public void setCompositionId(Integer compositionId) {
-        this.compositionId = compositionId;
+    public TrainCoachCompositionRequest() {
     }
 
     public String getTrainNumber() {

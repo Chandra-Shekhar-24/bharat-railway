@@ -9,7 +9,7 @@
  *
  * Description:
  * Application service for Train Master domain.
- * Handles CRUD operations for stations, trains, and routes.
+ * Handles CRUD operations for stations, trains, routes, and coach composition.
  */
 
 package com.bharatrailway.trainmaster.application.service;
@@ -23,12 +23,15 @@ import org.springframework.transaction.annotation.Transactional;
 import com.bharatrailway.shared.exception.ResourceAlreadyExistsException;
 import com.bharatrailway.trainmaster.application.dto.RouteRequest;
 import com.bharatrailway.trainmaster.application.dto.StationRequest;
+import com.bharatrailway.trainmaster.application.dto.TrainCoachCompositionRequest;
 import com.bharatrailway.trainmaster.application.dto.TrainRequest;
 import com.bharatrailway.trainmaster.domain.Route;
 import com.bharatrailway.trainmaster.domain.Station;
 import com.bharatrailway.trainmaster.domain.Train;
+import com.bharatrailway.trainmaster.domain.TrainCoachComposition;
 import com.bharatrailway.trainmaster.infrastructure.RouteRepository;
 import com.bharatrailway.trainmaster.infrastructure.StationRepository;
+import com.bharatrailway.trainmaster.infrastructure.TrainCoachCompositionRepository;
 import com.bharatrailway.trainmaster.infrastructure.TrainRepository;
 
 @Service
@@ -37,13 +40,16 @@ public class TrainMasterService {
     private final StationRepository stationRepository;
     private final TrainRepository trainRepository;
     private final RouteRepository routeRepository;
+    private final TrainCoachCompositionRepository trainCoachCompositionRepository;
 
     public TrainMasterService(StationRepository stationRepository,
                               TrainRepository trainRepository,
-                              RouteRepository routeRepository) {
+                              RouteRepository routeRepository,
+                              TrainCoachCompositionRepository trainCoachCompositionRepository) {
         this.stationRepository = stationRepository;
         this.trainRepository = trainRepository;
         this.routeRepository = routeRepository;
+        this.trainCoachCompositionRepository = trainCoachCompositionRepository;
     }
 
     // ========== STATION OPERATIONS ==========
@@ -178,5 +184,40 @@ public class TrainMasterService {
 
     public List<Route> getRoutesByStation(String stationCode) {
         return routeRepository.findByStationCode(stationCode);
+    }
+
+    // ========== COACH COMPOSITION OPERATIONS ==========
+
+    @Transactional
+    public TrainCoachComposition createCoachComposition(TrainCoachCompositionRequest request) {
+        if (trainCoachCompositionRepository.existsByTrainNumberAndCoachClass(
+                request.getTrainNumber(), request.getCoachClass())) {
+            throw new ResourceAlreadyExistsException("CoachComposition", "train_class",
+                    request.getTrainNumber() + "-" + request.getCoachClass());
+        }
+
+        TrainCoachComposition composition = new TrainCoachComposition();
+        composition.setTrainNumber(request.getTrainNumber());
+        composition.setCoachClass(request.getCoachClass());
+        composition.setNumberOfCoaches(request.getNumberOfCoaches());
+        
+        // Convert comma-separated string to JSON array format for jsonb column
+        String jsonCoachNumbers = "[\"" + request.getCoachNumbers().replace(",", "\",\"") + "\"]";
+        composition.setCoachNumbers(jsonCoachNumbers);
+        
+        composition.setCoachPositionFromEngine(request.getCoachPositionFromEngine());
+        composition.setHasDisabledAccess(request.getHasDisabledAccess());
+        composition.setEffectiveFrom(request.getEffectiveFrom());
+        composition.setEffectiveTo(request.getEffectiveTo());
+
+        return trainCoachCompositionRepository.save(composition);
+    }
+
+    public List<TrainCoachComposition> getCoachCompositionByTrain(String trainNumber) {
+        return trainCoachCompositionRepository.findByTrainNumber(trainNumber);
+    }
+
+    public List<TrainCoachComposition> getCoachCompositionByTrainAndClass(String trainNumber, String coachClass) {
+        return trainCoachCompositionRepository.findByTrainNumberAndCoachClass(trainNumber, coachClass);
     }
 }

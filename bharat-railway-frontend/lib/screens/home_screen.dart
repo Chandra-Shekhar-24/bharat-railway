@@ -8,13 +8,12 @@
  *
  * Description:
  * Home screen – dashboard with welcome banner, quick action cards.
- * Displays logged‑in user's full name from JWT.
- * Updated Book Ticket navigation to TrainSearchScreen.
+ * All quick actions are now functional.
  *
  * Version History:
  * version 1.0.0: Initial file creation. Redesigned UI with smaller cards,
  *                improved spacing, and full name display.
- *                Updated Book Ticket to navigate to TrainSearchScreen.
+ *                Updated all quick actions to navigate correctly.
  */
 
 import 'dart:math' as math;
@@ -26,6 +25,8 @@ import '../providers/auth_provider.dart';
 import '../themes/app_theme.dart';
 import '../widgets/sidebar_menu.dart';
 import '../screens/search/train_search_screen.dart';
+import '../screens/booking/pnr_status_screen.dart';
+import '../screens/booking/booking_history_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -41,10 +42,10 @@ class _HomeScreenState extends State<HomeScreen>
   late AnimationController _staggerController;
 
   final List<Map<String, dynamic>> _actions = [
-    {'icon': Icons.train_outlined, 'title': 'Book Ticket', 'subtitle': 'Search & book', 'soon': false},
-    {'icon': Icons.receipt_long_outlined, 'title': 'PNR Status', 'subtitle': 'Check PNR', 'soon': true},
-    {'icon': Icons.schedule_outlined, 'title': 'Train Schedule', 'subtitle': 'View schedule', 'soon': true},
-    {'icon': Icons.history_outlined, 'title': 'Booking History', 'subtitle': 'Past bookings', 'soon': true},
+    {'icon': Icons.train_outlined, 'title': 'Book Ticket', 'subtitle': 'Search & book', 'soon': false, 'route': 'book'},
+    {'icon': Icons.receipt_long_outlined, 'title': 'PNR Status', 'subtitle': 'Check PNR', 'soon': false, 'route': 'pnr'},
+    {'icon': Icons.schedule_outlined, 'title': 'Train Schedule', 'subtitle': 'View schedule', 'soon': true, 'route': 'schedule'},
+    {'icon': Icons.history_outlined, 'title': 'Booking History', 'subtitle': 'Past bookings', 'soon': false, 'route': 'history'},
   ];
 
   void _openDrawer() => _scaffoldKey.currentState?.openDrawer();
@@ -66,6 +67,34 @@ class _HomeScreenState extends State<HomeScreen>
         duration: const Duration(seconds: 3),
       ),
     );
+  }
+
+  void _navigateTo(String route) {
+    switch (route) {
+      case 'book':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const TrainSearchScreen()),
+        );
+        break;
+      case 'pnr':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const PnrStatusScreen()),
+        );
+        break;
+      case 'history':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const BookingHistoryScreen()),
+        );
+        break;
+      case 'schedule':
+        _showComingSoonSnackbar('Train Schedule');
+        break;
+      default:
+        _showComingSoonSnackbar('This feature');
+    }
   }
 
   @override
@@ -90,11 +119,7 @@ class _HomeScreenState extends State<HomeScreen>
       final payload = jsonDecode(
         utf8.decode(base64Url.decode(base64Url.normalize(parts[1]))),
       );
-
-      // 🔍 Print decoded payload to console – copy this JSON to find your name key
       print(payload);
-
-      // Extended list of possible name keys – add your key here as the first entry
       final nameKeys = [
         'fullName',
         'full_name',
@@ -284,12 +309,7 @@ class _HomeScreenState extends State<HomeScreen>
                           if (item['soon']) {
                             _showComingSoonSnackbar(item['title']);
                           } else {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const TrainSearchScreen(),
-                              ),
-                            );
+                            _navigateTo(item['route']);
                           }
                         },
                       ),

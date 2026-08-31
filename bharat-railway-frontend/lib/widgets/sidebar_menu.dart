@@ -9,14 +9,8 @@
  * Description:
  * Premium sidebar/drawer with user profile header, organized menu items.
  * Displays logged‑in user's full name and email (if available).
- * Updated Book Ticket navigation to TrainSearchScreen.
- *
- * Version History:
- * version 1.0.0: Initial file creation. Complete redesign: added profile
- *                header, user avatar with initials, email display,
- *                section dividers, improved typography and spacing.
- *                Enhanced JWT parsing to prioritize names with spaces.
- *                Updated Book Ticket to navigate to TrainSearchScreen.
+ * PNR Status and Booking History are now functional.
+ * Added Profile link in sidebar.
  */
 
 import 'dart:convert';
@@ -27,6 +21,9 @@ import '../providers/auth_provider.dart';
 import '../themes/app_theme.dart';
 import '../routes/app_routes.dart';
 import '../screens/search/train_search_screen.dart';
+import '../screens/booking/pnr_status_screen.dart';
+import '../screens/booking/booking_history_screen.dart';
+import '../screens/profile/profile_screen.dart';
 
 class SidebarMenu extends StatelessWidget {
   final VoidCallback onClose;
@@ -47,9 +44,8 @@ class SidebarMenu extends StatelessWidget {
       // 🔍 Print decoded payload to console
       print(payload);
 
-      // Extended list – put your key as the first one
       final nameKeys = [
-        'fullName',    // <-- change this to your actual key
+        'fullName',
         'full_name',
         'displayName',
         'display_name',
@@ -196,6 +192,19 @@ class SidebarMenu extends StatelessWidget {
                     },
                   ),
                   _buildMenuItem(
+                    icon: Icons.person_outline,
+                    title: 'My Profile',
+                    onTap: () {
+                      onClose();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ProfileScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildMenuItem(
                     icon: Icons.confirmation_number_outlined,
                     title: 'Book Ticket',
                     onTap: () {
@@ -216,7 +225,12 @@ class SidebarMenu extends StatelessWidget {
                     title: 'PNR Status',
                     onTap: () {
                       onClose();
-                      _showComingSoon(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const PnrStatusScreen(),
+                        ),
+                      );
                     },
                   ),
                   _buildMenuItem(
@@ -232,7 +246,12 @@ class SidebarMenu extends StatelessWidget {
                     title: 'Booking History',
                     onTap: () {
                       onClose();
-                      _showComingSoon(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const BookingHistoryScreen(),
+                        ),
+                      );
                     },
                   ),
                   const Divider(height: 24, thickness: 1, indent: 16, endIndent: 16),

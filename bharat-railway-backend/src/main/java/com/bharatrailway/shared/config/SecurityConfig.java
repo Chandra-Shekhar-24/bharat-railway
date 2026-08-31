@@ -4,13 +4,13 @@
  * Branch: feature/backend-developer-hitanshu
  * Developer: Chandra Shekhar Bansal
  * Assisted by: DeepSeek (AI Scribe)
- * Date: 2026-08-31
+ * Date: 2026-09-01
  * Version: 0.1.0-SNAPSHOT
  *
  * Description:
  * Spring Security configuration.
  * CORS enabled for Flutter frontend.
- * Public endpoints: /api/health, /api/v1/auth/**, /api/v1/trainmaster/**
+ * Public endpoints: /api/health, /api/v1/auth/**, /api/v1/trainmaster/**, /api/v1/bookings/**
  */
 
 package com.bharatrailway.shared.config;
@@ -42,6 +42,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/health").permitAll()
                 .requestMatchers("/api/v1/auth/**").permitAll()
                 .requestMatchers("/api/v1/trainmaster/**").permitAll()
+                .requestMatchers("/api/v1/bookings/**").permitAll()
                 .anyRequest().authenticated()
             );
 

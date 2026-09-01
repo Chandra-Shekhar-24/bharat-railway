@@ -12,7 +12,7 @@
  * CORS enabled for Flutter frontend.
  * Public endpoints: /api/health, /api/v1/auth/**, /api/v1/trainmaster/**,
  * /api/v1/bookings/**, /api/v1/fares/**, /api/v1/payments/**,
- * /api/v1/notifications/**, /api/v1/employees/**
+ * /api/v1/notifications/**, /api/v1/employees/**, /api/v1/financial/**
  */
 
 package com.bharatrailway.shared.config;
@@ -49,6 +49,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/payments/**").permitAll()
                 .requestMatchers("/api/v1/notifications/**").permitAll()
                 .requestMatchers("/api/v1/employees/**").permitAll()
+                .requestMatchers("/api/v1/financial/**").permitAll()
                 .anyRequest().authenticated()
             );
 

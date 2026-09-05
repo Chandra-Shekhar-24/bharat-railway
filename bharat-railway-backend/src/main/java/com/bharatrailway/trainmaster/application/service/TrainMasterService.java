@@ -10,13 +10,12 @@
  * Description:
  * Application service for Train Master domain.
  * Handles CRUD operations for stations, trains, routes, coach composition, and seats.
- * Enhanced train search with mid-station support.
+ * Enhanced train search with mid-station support and day-based duration calculation.
  */
 
 package com.bharatrailway.trainmaster.application.service;
 
 import java.math.BigDecimal;
-import java.time.Duration;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.util.HashMap;
@@ -24,6 +23,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,6 +48,8 @@ import com.bharatrailway.trainmaster.infrastructure.TrainRepository;
 
 @Service
 public class TrainMasterService {
+
+    private static final Logger log = LoggerFactory.getLogger(TrainMasterService.class);
 
     private final StationRepository stationRepository;
     private final TrainRepository trainRepository;
@@ -165,23 +168,40 @@ public class TrainMasterService {
     private TrainSearchResponse buildSearchResponse(Train train) {
         List<Route> routes = routeRepository.findByTrainNumberOrderBySequenceNumberAsc(train.getTrainNumber());
 
-        Route originRoute = routes.isEmpty() ? null : routes.get(0);
-        Route destRoute = routes.isEmpty() ? null : routes.get(routes.size() - 1);
+        Route originRoute = null;
+        Route destRoute = null;
+
+        for (Route route : routes) {
+            if (route.getIsOriginatingStation() != null && route.getIsOriginatingStation()) {
+                originRoute = route;
+            }
+            if (route.getIsTerminatingStation() != null && route.getIsTerminatingStation()) {
+                destRoute = route;
+            }
+        }
+
+        if (originRoute == null && !routes.isEmpty()) originRoute = routes.get(0);
+        if (destRoute == null && !routes.isEmpty()) destRoute = routes.get(routes.size() - 1);
 
         LocalTime departureTime = originRoute != null ? originRoute.getDepartureTime() : null;
         LocalTime arrivalTime = destRoute != null ? destRoute.getArrivalTime() : null;
+        short originDay = originRoute != null ? originRoute.getDayNumber() : 1;
+        short destDay = destRoute != null ? destRoute.getDayNumber() : 1;
 
         String durationStr = "N/A";
         if (departureTime != null && arrivalTime != null) {
-            Duration duration;
-            if (arrivalTime.isBefore(departureTime)) {
-                duration = Duration.between(departureTime, arrivalTime.plusHours(24));
-            } else {
-                duration = Duration.between(departureTime, arrivalTime);
-            }
-            long hours = duration.toHours();
-            long minutes = duration.toMinutesPart();
+            long departureMinutes = (originDay - 1) * 1440L + departureTime.getHour() * 60L + departureTime.getMinute();
+            long arrivalMinutes = (destDay - 1) * 1440L + arrivalTime.getHour() * 60L + arrivalTime.getMinute();
+            long diffMinutes = arrivalMinutes - departureMinutes;
+            
+            if (diffMinutes < 0) diffMinutes += 1440;
+
+            long hours = diffMinutes / 60;
+            long minutes = diffMinutes % 60;
             durationStr = hours + "h " + minutes + "m";
+
+            log.debug("Train {}: dep={} day={}, arr={} day={}, diff={} minutes",
+                    train.getTrainNumber(), departureTime, originDay, arrivalTime, destDay, diffMinutes);
         }
 
         BigDecimal fareEstimate = train.getTotalDistance() != null

@@ -4,7 +4,7 @@
  * Branch: feature/backend-developer-hitanshu
  * Developer: Chandra Shekhar Bansal
  * Assisted by: DeepSeek (AI Scribe)
- * Date: 2026-09-01
+ * Date: 2026-09-05
  * Version: 0.1.0-SNAPSHOT
  *
  * Description:
@@ -25,6 +25,8 @@ import com.bharatrailway.payment.domain.PaymentTransaction;
 public interface PaymentTransactionRepository extends JpaRepository<PaymentTransaction, Integer> {
 
     Optional<PaymentTransaction> findByBookingId(Integer bookingId);
+
+    Optional<PaymentTransaction> findByGatewayReference(String gatewayReference);
 
     List<PaymentTransaction> findByUserIdOrderByCreatedAtDesc(Integer userId);
 

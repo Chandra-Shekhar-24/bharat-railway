@@ -3,11 +3,12 @@
  * Module: bharat-railway-frontend
  * Branch: feature/frontend-developer-chandrashekhar
  * Developer: Chandra Shekhar Bansal
- * Date: 2026-09-01
- * Version: 1.0.0
+ * Date: 2026-09-02
+ * Version: 2.0.0
  *
  * Description:
- * Train search results screen with Book Now navigation.
+ * Train results screen with enhanced UI showing departure, arrival,
+ * duration, fare estimate, and seat availability.
  */
 
 import 'package:flutter/material.dart';
@@ -17,7 +18,6 @@ import '../../models/train.dart';
 import '../../models/search_request.dart';
 import '../../themes/app_theme.dart';
 import '../booking/passenger_details_screen.dart';
-import 'train_details_screen.dart';
 
 class TrainResultsScreen extends StatefulWidget {
   final SearchRequest searchRequest;
@@ -61,19 +61,10 @@ class _TrainResultsScreenState extends State<TrainResultsScreen> {
     }
   }
 
-  void _navigateToDetails(Train train) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => TrainDetailsScreen(train: train),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF0F4F8),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1E40AF),
         elevation: 0,
@@ -97,7 +88,7 @@ class _TrainResultsScreenState extends State<TrainResultsScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.grey[50],
+                color: Colors.white,
                 border: Border(
                   bottom: BorderSide(color: Colors.grey[200]!),
                 ),
@@ -110,7 +101,7 @@ class _TrainResultsScreenState extends State<TrainResultsScreen> {
                     label: 'From',
                     value: widget.originName,
                   ),
-                  const Icon(Icons.arrow_forward, color: Color(0xFF1E40AF)),
+                  const Icon(Icons.arrow_forward, color: Color(0xFF1E40AF), size: 20),
                   _buildSummaryItem(
                     icon: Icons.location_city_outlined,
                     label: 'To',
@@ -225,6 +216,9 @@ class _TrainResultsScreenState extends State<TrainResultsScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF1E40AF),
                 foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
               child: const Text('Try Again'),
             ),
@@ -263,6 +257,9 @@ class _TrainResultsScreenState extends State<TrainResultsScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF1E40AF),
               foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
             child: const Text('Modify Search'),
           ),
@@ -272,8 +269,17 @@ class _TrainResultsScreenState extends State<TrainResultsScreen> {
   }
 
   Widget _buildTrainCard(Train train) {
+    final seatEntries = train.availableSeats.entries.toList();
+    final colors = [
+      const Color(0xFF059669),
+      const Color(0xFF2563EB),
+      const Color(0xFF7C3AED),
+      const Color(0xFFF59E0B),
+      const Color(0xFFDC2626),
+    ];
+
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(color: Colors.grey[200]!),
@@ -288,34 +294,47 @@ class _TrainResultsScreenState extends State<TrainResultsScreen> {
             Row(
               children: [
                 Expanded(
-                  child: Text(
-                    train.trainName,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF111827),
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        train.trainName,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF111827),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Train No: ${train.trainNumber}',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey[500],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: const Color(0xFF1E40AF).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    train.trainNumber,
+                    '₹${train.fareEstimate.toStringAsFixed(0)}',
                     style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
                       color: Color(0xFF1E40AF),
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            // Departure / Arrival
+            const SizedBox(height: 12),
+            // Departure → Arrival Timeline
             Row(
               children: [
                 Expanded(
@@ -325,13 +344,13 @@ class _TrainResultsScreenState extends State<TrainResultsScreen> {
                       Text(
                         train.departureTime,
                         style: const TextStyle(
-                          fontSize: 18,
+                          fontSize: 22,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF111827),
                         ),
                       ),
                       Text(
-                        train.origin,
+                        widget.originName,
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey[600],
@@ -343,14 +362,40 @@ class _TrainResultsScreenState extends State<TrainResultsScreen> {
                 Expanded(
                   child: Column(
                     children: [
-                      const Icon(
-                        Icons.arrow_forward,
-                        color: Color(0xFF1E40AF),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              height: 2,
+                              color: const Color(0xFF1E40AF),
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF1E40AF),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.train,
+                              color: Colors.white,
+                              size: 12,
+                            ),
+                          ),
+                          Expanded(
+                            child: Container(
+                              height: 2,
+                              color: Colors.grey[300],
+                            ),
+                          ),
+                        ],
                       ),
+                      const SizedBox(height: 4),
                       Text(
                         train.duration,
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
                           color: Colors.grey[600],
                         ),
                       ),
@@ -364,13 +409,13 @@ class _TrainResultsScreenState extends State<TrainResultsScreen> {
                       Text(
                         train.arrivalTime,
                         style: const TextStyle(
-                          fontSize: 18,
+                          fontSize: 22,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF111827),
                         ),
                       ),
                       Text(
-                        train.destination,
+                        widget.destinationName,
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey[600],
@@ -382,10 +427,55 @@ class _TrainResultsScreenState extends State<TrainResultsScreen> {
               ],
             ),
             const SizedBox(height: 12),
+            // Seat Availability Badges
+            if (seatEntries.isNotEmpty)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Seats Available',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: seatEntries.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final seatEntry = entry.value;
+                      final color = colors[index % colors.length];
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: color.withOpacity(0.3)),
+                        ),
+                        child: Text(
+                          '${seatEntry.key}: ${seatEntry.value}',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                            color: color,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+            const SizedBox(height: 14),
             // Book Now Button
             SizedBox(
               width: double.infinity,
-              height: 44,
+              height: 46,
               child: ElevatedButton(
                 onPressed: () {
                   Navigator.push(
@@ -394,8 +484,8 @@ class _TrainResultsScreenState extends State<TrainResultsScreen> {
                       builder: (context) => PassengerDetailsScreen(
                         trainNumber: train.trainNumber,
                         trainName: train.trainName,
-                        origin: train.origin,
-                        destination: train.destination,
+                        origin: widget.originName,
+                        destination: widget.destinationName,
                         originCode: widget.searchRequest.origin,
                         destinationCode: widget.searchRequest.destination,
                         journeyDate: widget.searchRequest.date,

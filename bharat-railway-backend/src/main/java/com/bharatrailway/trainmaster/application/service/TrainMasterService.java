@@ -4,18 +4,25 @@
  * Branch: feature/backend-developer-hitanshu
  * Developer: Chandra Shekhar Bansal
  * Assisted by: DeepSeek (AI Scribe)
- * Date: 2026-08-31
+ * Date: 2026-09-05
  * Version: 0.1.0-SNAPSHOT
  *
  * Description:
  * Application service for Train Master domain.
  * Handles CRUD operations for stations, trains, routes, coach composition, and seats.
+ * Enhanced train search with mid-station support.
  */
 
 package com.bharatrailway.trainmaster.application.service;
 
+import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +33,7 @@ import com.bharatrailway.trainmaster.application.dto.SeatRequest;
 import com.bharatrailway.trainmaster.application.dto.StationRequest;
 import com.bharatrailway.trainmaster.application.dto.TrainCoachCompositionRequest;
 import com.bharatrailway.trainmaster.application.dto.TrainRequest;
+import com.bharatrailway.trainmaster.application.dto.TrainSearchResponse;
 import com.bharatrailway.trainmaster.domain.Route;
 import com.bharatrailway.trainmaster.domain.Seat;
 import com.bharatrailway.trainmaster.domain.Station;
@@ -149,6 +157,56 @@ public class TrainMasterService {
                 .orElseThrow(() -> new RuntimeException("Train not found: " + trainNumber));
     }
 
+    public List<TrainSearchResponse> searchTrains(String origin, String destination) {
+        List<Train> trains = trainRepository.searchTrainsByStations(origin, destination);
+        return trains.stream().map(this::buildSearchResponse).collect(Collectors.toList());
+    }
+
+    private TrainSearchResponse buildSearchResponse(Train train) {
+        List<Route> routes = routeRepository.findByTrainNumberOrderBySequenceNumberAsc(train.getTrainNumber());
+
+        Route originRoute = routes.isEmpty() ? null : routes.get(0);
+        Route destRoute = routes.isEmpty() ? null : routes.get(routes.size() - 1);
+
+        LocalTime departureTime = originRoute != null ? originRoute.getDepartureTime() : null;
+        LocalTime arrivalTime = destRoute != null ? destRoute.getArrivalTime() : null;
+
+        String durationStr = "N/A";
+        if (departureTime != null && arrivalTime != null) {
+            Duration duration;
+            if (arrivalTime.isBefore(departureTime)) {
+                duration = Duration.between(departureTime, arrivalTime.plusHours(24));
+            } else {
+                duration = Duration.between(departureTime, arrivalTime);
+            }
+            long hours = duration.toHours();
+            long minutes = duration.toMinutesPart();
+            durationStr = hours + "h " + minutes + "m";
+        }
+
+        BigDecimal fareEstimate = train.getTotalDistance() != null
+                ? train.getTotalDistance().multiply(new BigDecimal("2.0"))
+                : BigDecimal.ZERO;
+
+        Map<String, Integer> availableSeats = new HashMap<>();
+        List<TrainCoachComposition> compositions = trainCoachCompositionRepository.findByTrainNumber(train.getTrainNumber());
+        for (TrainCoachComposition comp : compositions) {
+            String coachClass = comp.getCoachClass();
+            int coachCount = comp.getNumberOfCoaches() != null ? comp.getNumberOfCoaches() : 0;
+            availableSeats.put(coachClass, coachCount * 72);
+        }
+
+        return new TrainSearchResponse(
+                train.getTrainNumber(),
+                train.getTrainName(),
+                departureTime != null ? departureTime.toString() : "N/A",
+                arrivalTime != null ? arrivalTime.toString() : "N/A",
+                durationStr,
+                fareEstimate,
+                availableSeats
+        );
+    }
+
     public List<Train> getTrainsByRoute(String origin, String destination) {
         return trainRepository.findByOriginStationCodeAndDestinationStationCode(origin, destination);
     }
@@ -206,11 +264,10 @@ public class TrainMasterService {
         composition.setTrainNumber(request.getTrainNumber());
         composition.setCoachClass(request.getCoachClass());
         composition.setNumberOfCoaches(request.getNumberOfCoaches());
-        
-        // Convert comma-separated string to JSON array format for jsonb column
+
         String jsonCoachNumbers = "[\"" + request.getCoachNumbers().replace(",", "\",\"") + "\"]";
         composition.setCoachNumbers(jsonCoachNumbers);
-        
+
         composition.setCoachPositionFromEngine(request.getCoachPositionFromEngine());
         composition.setHasDisabledAccess(request.getHasDisabledAccess());
         composition.setEffectiveFrom(request.getEffectiveFrom());

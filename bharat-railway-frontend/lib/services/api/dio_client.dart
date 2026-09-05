@@ -50,7 +50,6 @@ class DioClient {
         onError: _onError,
       ),
     );
-
     return dio;
   }
 

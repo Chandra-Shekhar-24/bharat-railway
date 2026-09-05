@@ -3,8 +3,8 @@
  * Module: bharat-railway-frontend
  * Branch: feature/frontend-developer-chandrashekhar
  * Developer: Chandra Shekhar Bansal
- * Date: 2026-09-01
- * Version: 1.0.0
+ * Date: 2026-09-02
+ * Version: 2.0.0
  *
  * Description:
  * Train service for station and train API calls.
@@ -20,7 +20,6 @@ import 'api/dio_client.dart';
 class TrainService {
   final Dio _dio = DioClient.instance;
 
-  // GET /api/v1/trainmaster/stations
   Future<List<Station>> getStations() async {
     try {
       final response = await _dio.get('/api/v1/trainmaster/stations');
@@ -35,7 +34,6 @@ class TrainService {
     }
   }
 
-  // GET /api/v1/trainmaster/trains/search?origin=BCT&destination=NDLS
   Future<List<Train>> searchTrains(SearchRequest request) async {
     try {
       final response = await _dio.get(
@@ -48,33 +46,6 @@ class TrainService {
             .toList();
       }
       return [];
-    } on DioException catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  // GET /api/v1/trainmaster/routes/train/{trainNumber}
-  Future<Train> getTrainRoute(String trainNumber) async {
-    try {
-      final response = await _dio.get(
-        '/api/v1/trainmaster/routes/train/$trainNumber',
-      );
-      return Train.fromJson(response.data);
-    } on DioException catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  // GET /api/v1/trainmaster/seats/train/{trainNumber}/class/{coachClass}
-  Future<Map<String, int>> getSeatAvailability(
-    String trainNumber,
-    String coachClass,
-  ) async {
-    try {
-      final response = await _dio.get(
-        '/api/v1/trainmaster/seats/train/$trainNumber/class/$coachClass',
-      );
-      return Map<String, int>.from(response.data);
     } on DioException catch (e) {
       throw _handleError(e);
     }

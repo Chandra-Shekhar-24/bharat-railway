@@ -4,16 +4,11 @@
  * Branch: feature/frontend-developer-chandrashekhar
  * Developer: Chandra Shekhar Bansal
  * Date: 2026-09-01
- * Version: 1.0.0
+ * Version: 2.0.0
  *
  * Description:
- * Home screen – dashboard with welcome banner, quick action cards.
- * All quick actions are now functional.
- *
- * Version History:
- * version 1.0.0: Initial file creation. Redesigned UI with smaller cards,
- *                improved spacing, and full name display.
- *                Updated all quick actions to navigate correctly.
+ * Production-ready home screen with dynamic user name, quick actions,
+ * and modern UI with IRCTC branding.
  */
 
 import 'dart:math' as math;
@@ -27,6 +22,7 @@ import '../widgets/sidebar_menu.dart';
 import '../screens/search/train_search_screen.dart';
 import '../screens/booking/pnr_status_screen.dart';
 import '../screens/booking/booking_history_screen.dart';
+import '../screens/profile/profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -38,36 +34,34 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen>
     with TickerProviderStateMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-
   late AnimationController _staggerController;
 
   final List<Map<String, dynamic>> _actions = [
-    {'icon': Icons.train_outlined, 'title': 'Book Ticket', 'subtitle': 'Search & book', 'soon': false, 'route': 'book'},
-    {'icon': Icons.receipt_long_outlined, 'title': 'PNR Status', 'subtitle': 'Check PNR', 'soon': false, 'route': 'pnr'},
-    {'icon': Icons.schedule_outlined, 'title': 'Train Schedule', 'subtitle': 'View schedule', 'soon': true, 'route': 'schedule'},
-    {'icon': Icons.history_outlined, 'title': 'Booking History', 'subtitle': 'Past bookings', 'soon': false, 'route': 'history'},
+    {'icon': Icons.train_outlined, 'title': 'Book Ticket', 'subtitle': 'Search & book', 'route': 'book', 'color': 0xFF2563EB},
+    {'icon': Icons.receipt_long_outlined, 'title': 'PNR Status', 'subtitle': 'Check PNR', 'route': 'pnr', 'color': 0xFF7C3AED},
+    {'icon': Icons.history_outlined, 'title': 'Booking History', 'subtitle': 'Past bookings', 'route': 'history', 'color': 0xFFDC2626},
+    {'icon': Icons.person_outline, 'title': 'My Profile', 'subtitle': 'View & edit', 'route': 'profile', 'color': 0xFF059669},
   ];
 
-  void _openDrawer() => _scaffoldKey.currentState?.openDrawer();
-
-  void _showComingSoonSnackbar(String featureName) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.rocket_launch, color: Colors.white, size: 20),
-            const SizedBox(width: 12),
-            Expanded(child: Text('$featureName feature coming soon! 🚀', style: const TextStyle(fontWeight: FontWeight.w600))),
-          ],
-        ),
-        backgroundColor: Colors.grey[850],
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        margin: const EdgeInsets.all(16),
-        duration: const Duration(seconds: 3),
-      ),
-    );
+  String _getFullNameFromToken(String token) {
+    try {
+      final parts = token.split('.');
+      if (parts.length != 3) return 'User';
+      final payload = jsonDecode(
+        utf8.decode(base64Url.decode(base64Url.normalize(parts[1]))),
+      );
+      return payload['fullName'] ?? 
+             payload['full_name'] ?? 
+             payload['name'] ?? 
+             payload['preferred_username'] ??
+             payload['username'] ??
+             'User';
+    } catch (_) {
+      return 'User';
+    }
   }
+
+  void _openDrawer() => _scaffoldKey.currentState?.openDrawer();
 
   void _navigateTo(String route) {
     switch (route) {
@@ -89,11 +83,12 @@ class _HomeScreenState extends State<HomeScreen>
           MaterialPageRoute(builder: (context) => const BookingHistoryScreen()),
         );
         break;
-      case 'schedule':
-        _showComingSoonSnackbar('Train Schedule');
+      case 'profile':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ProfileScreen()),
+        );
         break;
-      default:
-        _showComingSoonSnackbar('This feature');
     }
   }
 
@@ -112,53 +107,6 @@ class _HomeScreenState extends State<HomeScreen>
     super.dispose();
   }
 
-  String _getFullNameFromToken(String token) {
-    try {
-      final parts = token.split('.');
-      if (parts.length != 3) return 'User';
-      final payload = jsonDecode(
-        utf8.decode(base64Url.decode(base64Url.normalize(parts[1]))),
-      );
-      print(payload);
-      final nameKeys = [
-        'fullName',
-        'full_name',
-        'displayName',
-        'display_name',
-        'name',
-        'userFullName',
-        'user_full_name',
-        'preferred_username',
-        'given_name',
-        'family_name',
-      ];
-
-      String name = '';
-      for (var key in nameKeys) {
-        if (payload.containsKey(key) && payload[key] is String) {
-          final value = payload[key] as String;
-          if (value.trim().isNotEmpty) {
-            if (value.contains(' ')) {
-              name = value;
-              break;
-            }
-            if (name.isEmpty) {
-              name = value;
-            }
-          }
-        }
-      }
-
-      if (name.isEmpty) {
-        name = payload['sub'] ?? 'User';
-      }
-
-      return name;
-    } catch (_) {
-      return 'User';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
@@ -167,7 +115,7 @@ class _HomeScreenState extends State<HomeScreen>
 
     return Scaffold(
       key: _scaffoldKey,
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF0F4F8),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1E40AF),
         elevation: 0,
@@ -203,7 +151,24 @@ class _HomeScreenState extends State<HomeScreen>
             const Text('IRCTC', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 1.5)),
           ],
         ),
-        actions: const [],
+        actions: [
+          IconButton(
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.person, color: Colors.white, size: 20),
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfileScreen()),
+              );
+            },
+          ),
+        ],
       ),
       drawer: SidebarMenu(onClose: () => Navigator.pop(context)),
       body: SafeArea(
@@ -234,29 +199,72 @@ class _HomeScreenState extends State<HomeScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Welcome back,',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.white.withOpacity(0.8),
-                        fontWeight: FontWeight.w400,
-                      ),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.celebration,
+                            color: Color(0xFF1E40AF),
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Welcome back,',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.white.withOpacity(0.8),
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                              Text(
+                                fullName,
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      fullName,
-                      style: const TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(30),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Book your train tickets in seconds',
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: Colors.white.withOpacity(0.85),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: const BoxDecoration(
+                              color: Colors.green,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Ready to book your next journey',
+                            style: TextStyle(color: Colors.white, fontSize: 12),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -289,7 +297,7 @@ class _HomeScreenState extends State<HomeScreen>
                   crossAxisCount: 2,
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
-                  childAspectRatio: 1.2,
+                  childAspectRatio: 1.1,
                   physics: const NeverScrollableScrollPhysics(),
                   children: List.generate(_actions.length, (index) {
                     final item = _actions[index];
@@ -304,14 +312,8 @@ class _HomeScreenState extends State<HomeScreen>
                         icon: item['icon'],
                         title: item['title'],
                         subtitle: item['subtitle'],
-                        isSoon: item['soon'],
-                        onTap: () {
-                          if (item['soon']) {
-                            _showComingSoonSnackbar(item['title']);
-                          } else {
-                            _navigateTo(item['route']);
-                          }
-                        },
+                        color: Color(item['color']),
+                        onTap: () => _navigateTo(item['route']),
                       ),
                     );
                   }),
@@ -323,9 +325,9 @@ class _HomeScreenState extends State<HomeScreen>
                   children: [
                     Container(width: 60, height: 2, color: const Color(0xFF4B5563).withOpacity(0.4)),
                     const SizedBox(height: 12),
-                    Text('© 2024 Indian Railways. All rights reserved.', style: TextStyle(color: const Color(0xFF4B5563).withOpacity(0.7), fontSize: 12)),
+                    Text('© 2026 Indian Railways. All rights reserved.', style: TextStyle(color: const Color(0xFF4B5563).withOpacity(0.7), fontSize: 12)),
                     const SizedBox(height: 4),
-                    Text('Version 1.0.0', style: TextStyle(color: const Color(0xFF4B5563).withOpacity(0.5), fontSize: 10)),
+                    Text('Version 2.0.0', style: TextStyle(color: const Color(0xFF4B5563).withOpacity(0.5), fontSize: 10)),
                   ],
                 ),
               ),
@@ -340,48 +342,58 @@ class _HomeScreenState extends State<HomeScreen>
     required IconData icon,
     required String title,
     required String subtitle,
-    required bool isSoon,
+    required Color color,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(18),
           border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 12, spreadRadius: 1, offset: const Offset(0, 2))],
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 12,
+              spreadRadius: 1,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 48,
-              height: 48,
+              width: 56,
+              height: 56,
               decoration: BoxDecoration(
-                color: const Color(0xFF1E40AF).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(14),
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(16),
               ),
-              child: Icon(icon, color: const Color(0xFF1E40AF), size: 24),
+              child: Icon(icon, color: color, size: 28),
             ),
-            const SizedBox(height: 6),
-            Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF111827), letterSpacing: 0.2), textAlign: TextAlign.center),
-            const SizedBox(height: 1),
-            Text(subtitle, style: const TextStyle(fontSize: 10, color: Color(0xFF4B5563)), textAlign: TextAlign.center),
-            if (isSoon)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF59E0B).withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0xFFF59E0B).withOpacity(0.4)),
-                  ),
-                  child: const Text('SOON', style: TextStyle(color: Color(0xFFD97706), fontSize: 7, fontWeight: FontWeight.bold)),
-                ),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF111827),
+                letterSpacing: 0.3,
               ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.grey[500],
+              ),
+              textAlign: TextAlign.center,
+            ),
           ],
         ),
       ),

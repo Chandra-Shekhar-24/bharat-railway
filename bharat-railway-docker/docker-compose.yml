@@ -1,7 +1,7 @@
 # developer name: Chandra Shekhar Bansal
 # developer email: chandrashekharbansal.2006@gmail.com
 # assisted by: DeepSeek
-# current file version: 1.0.11
+# current file version: 1.0.12
 # version 1.0.0: Initial Docker Compose orchestration for Bharat Railway Booking System.
 # version 1.0.1: Update backend image to eclipse-temurin:21-jre (Java 21 per v5.1 spec).
 # version 1.0.2: Add health checks, backend command placeholder, shared log volumes, and Kafka external listener.
@@ -14,6 +14,7 @@
 # version 1.0.9 - Fixed network configuration
 # version 1.0.10: Update volume mapping from init.sql to create-schemas.sql.
 # version 1.0.11: Update volume mount to entire bharat-railway-postgres directory for schema scripts.
+# version 1.0.12: Mount pgbouncer.ini and userlist.txt for TCP listener fix.
 services:
   bharat-railway-postgres:
     image: postgres:16
@@ -49,6 +50,9 @@ services:
       MAX_CLIENT_CONN: 100
     ports:
       - "${HOST_IP}:${PGBOUNCER_HOST_PORT}:6432"
+    volumes:
+      - ../bharat-railway-pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini
+      - ../bharat-railway-pgbouncer/userlist.txt:/etc/pgbouncer/userlist.txt
     depends_on:
       - bharat-railway-postgres
     networks:

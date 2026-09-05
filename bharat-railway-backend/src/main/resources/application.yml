@@ -2,17 +2,15 @@
 # Project: Bharat Railway Booking System
 # Module: bharat-railway-backend
 # Branch: feature/backend-developer-hitanshu
-# Developer: Hitanshu Dhakrey
-# Assisted by: Chandra Shekhar Bansal (Infrastructure), DeepSeek (AI Scribe)
-# Date: 2026-06-19
+# Developer: Chandra Shekhar Bansal
+# Assisted by: DeepSeek (AI Scribe)
+# Date: 2026-09-05
 # Version: 0.1.0-SNAPSHOT
 #
 # Description:
 # Phase 1 Backend API - Application Configuration.
-# Single DataSource to bharat_railway_core via PostgreSQL direct (PgBouncer bypassed
-# temporarily due to extra_float_digits incompatibility with edoburu/pgbouncer).
-# Virtual Threads enabled. Kafka producer for notification events.
-# Server binds to all network interfaces (0.0.0.0) so phone via Tailscale can connect.
+# Single DataSource to bharat_railway_core via PostgreSQL.
+# Virtual Threads enabled. Kafka producer. Razorpay UPI integration.
 # =============================================================================
 
 spring:
@@ -24,7 +22,7 @@ spring:
     virtual:
       enabled: true
 
-  # Single DataSource via PostgreSQL Direct (TEMP: PgBouncer bypassed)
+  # Single DataSource
   datasource:
     url: jdbc:postgresql://100.95.255.78:50001/bharat_railway_core?TimeZone=UTC
     username: bharat_railway_admin_chandra
@@ -77,10 +75,16 @@ spring:
             enable: true
             required: true
 
-# Server – binds to all network interfaces so mobile via Tailscale can access
+# Razorpay Configuration
+razorpay:
+  key-id: YOUR_RAZORPAY_KEY_ID
+  key-secret: YOUR_RAZORPAY_KEY_SECRET
+  webhook-secret: YOUR_RAZORPAY_WEBHOOK_SECRET
+  currency: INR
+
+# Server
 server:
   port: 8080
-  address: 0.0.0.0
   shutdown: graceful
 
 # Logging

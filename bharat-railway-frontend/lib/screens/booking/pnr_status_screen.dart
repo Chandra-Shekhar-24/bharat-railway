@@ -4,10 +4,10 @@
  * Branch: feature/frontend-developer-chandrashekhar
  * Developer: Chandra Shekhar Bansal
  * Date: 2026-09-01
- * Version: 1.0.0
+ * Version: 2.0.0
  *
  * Description:
- * PNR status screen.
+ * Production-ready PNR status screen.
  */
 
 import 'package:flutter/material.dart';
@@ -27,6 +27,7 @@ class _PnrStatusScreenState extends State<PnrStatusScreen> {
   final BookingService _bookingService = BookingService();
   final TextEditingController _pnrController = TextEditingController();
   bool _isLoading = false;
+  bool _hasSearched = false;
   BookingResponse? _booking;
   String? _error;
 
@@ -42,7 +43,8 @@ class _PnrStatusScreenState extends State<PnrStatusScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please enter a PNR number'),
-          backgroundColor: AppTheme.errorColor,
+          backgroundColor: Color(0xFFDC2626),
+          behavior: SnackBarBehavior.floating,
         ),
       );
       return;
@@ -50,6 +52,7 @@ class _PnrStatusScreenState extends State<PnrStatusScreen> {
 
     setState(() {
       _isLoading = true;
+      _hasSearched = true;
       _error = null;
       _booking = null;
     });
@@ -67,7 +70,7 @@ class _PnrStatusScreenState extends State<PnrStatusScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF0F4F8),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1E40AF),
         elevation: 0,
@@ -91,11 +94,17 @@ class _PnrStatusScreenState extends State<PnrStatusScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.grey[50],
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.grey[200]!),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 12,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -108,7 +117,7 @@ class _PnrStatusScreenState extends State<PnrStatusScreen> {
                         color: Color(0xFF111827),
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 12),
                     Row(
                       children: [
                         Expanded(
@@ -123,35 +132,40 @@ class _PnrStatusScreenState extends State<PnrStatusScreen> {
                             decoration: InputDecoration(
                               hintText: 'e.g., W560A4XTU7',
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(10),
                                 borderSide: BorderSide(color: Colors.grey[300]!),
                               ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: const BorderSide(color: Color(0xFF1E40AF), width: 2),
+                              ),
                               contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 12,
+                                horizontal: 16,
+                                vertical: 14,
                               ),
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 12),
                         SizedBox(
-                          height: 52,
+                          height: 54,
+                          width: 54,
                           child: ElevatedButton(
                             onPressed: _isLoading ? null : _checkPnrStatus,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF1E40AF),
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(10),
                               ),
                             ),
                             child: _isLoading
                                 ? const SizedBox(
-                                    height: 20,
-                                    width: 20,
+                                    height: 24,
+                                    width: 24,
                                     child: CircularProgressIndicator(
                                       color: Colors.white,
-                                      strokeWidth: 2,
+                                      strokeWidth: 2.5,
                                     ),
                                   )
                                 : const Icon(Icons.search),
@@ -165,7 +179,16 @@ class _PnrStatusScreenState extends State<PnrStatusScreen> {
               const SizedBox(height: 16),
               Expanded(
                 child: _isLoading
-                    ? const Center(child: CircularProgressIndicator())
+                    ? const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CircularProgressIndicator(),
+                            SizedBox(height: 16),
+                            Text('Fetching PNR details...'),
+                          ],
+                        ),
+                      )
                     : _error != null
                     ? _buildErrorState()
                     : _booking != null
@@ -184,16 +207,34 @@ class _PnrStatusScreenState extends State<PnrStatusScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.receipt_long_outlined, size: 64, color: Colors.grey[400]),
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E40AF).withOpacity(0.05),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.receipt_long_outlined,
+              size: 64,
+              color: Colors.grey[400],
+            ),
+          ),
           const SizedBox(height: 16),
           const Text(
             'Enter PNR to check status',
-            style: TextStyle(fontSize: 16, color: Colors.grey),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF111827),
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             'Your PNR number is on your ticket',
-            style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[500],
+            ),
           ),
         ],
       ),
@@ -210,7 +251,10 @@ class _PnrStatusScreenState extends State<PnrStatusScreen> {
           Text(
             _error!,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 16, color: Colors.grey),
+            style: const TextStyle(
+              fontSize: 16,
+              color: Colors.grey,
+            ),
           ),
           const SizedBox(height: 16),
           ElevatedButton(
@@ -218,6 +262,9 @@ class _PnrStatusScreenState extends State<PnrStatusScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF1E40AF),
               foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
             child: const Text('Try Again'),
           ),
@@ -239,7 +286,7 @@ class _PnrStatusScreenState extends State<PnrStatusScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 begin: Alignment.topLeft,
@@ -255,25 +302,25 @@ class _PnrStatusScreenState extends State<PnrStatusScreen> {
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.white70,
-                    letterSpacing: 1,
+                    letterSpacing: 1.5,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   booking.pnrNumber,
                   style: const TextStyle(
-                    fontSize: 28,
+                    fontSize: 32,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                     letterSpacing: 2,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                   decoration: BoxDecoration(
                     color: statusColor.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(20),
                     border: Border.all(color: statusColor),
                   ),
                   child: Text(
@@ -289,24 +336,31 @@ class _PnrStatusScreenState extends State<PnrStatusScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Booking Details',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF111827),
-            ),
-          ),
-          const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.grey[50],
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey[200]!),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 12,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                const Text(
+                  'Booking Details',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF111827),
+                  ),
+                ),
+                const SizedBox(height: 12),
                 _buildDetailRow('Booking ID', '${booking.bookingId}'),
                 _buildDetailRow('Train', booking.trainNumber),
                 _buildDetailRow('Journey Date', booking.journeyDate),
@@ -330,16 +384,23 @@ class _PnrStatusScreenState extends State<PnrStatusScreen> {
 
   Widget _buildDetailRow(String label, String value, {Color? valueColor}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w500,
+            ),
+          ),
           Text(
             value,
             style: TextStyle(
               fontSize: 14,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w600,
               color: valueColor ?? const Color(0xFF111827),
             ),
           ),

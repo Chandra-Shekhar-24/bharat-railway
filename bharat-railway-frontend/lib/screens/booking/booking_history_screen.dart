@@ -8,7 +8,6 @@
  *
  * Description:
  * Booking history screen showing all user bookings.
- * View Details shows booking details with real passenger list.
  */
 
 import 'dart:convert';
@@ -66,7 +65,7 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
       final payload = jsonDecode(
         utf8.decode(base64Url.decode(base64Url.normalize(parts[1]))),
       );
-      return payload['userId'] ?? payload['sub'] ?? 1;
+      return payload['user_id'] ?? payload['userId'] ?? payload['sub'] ?? 1;
     } catch (_) {
       return 1;
     }
@@ -82,12 +81,11 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
   }
 
   Future<void> _showBookingDetails(BookingResponse booking) async {
-    // Fetch passengers
     List<PassengerRequest> passengers = [];
     try {
       passengers = await _bookingService.getPassengersByBooking(booking.bookingId);
     } catch (e) {
-      // Ignore error – show empty list
+      // Ignore
     }
 
     showModalBottomSheet(
@@ -134,7 +132,6 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // PNR Card
                           Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
@@ -172,10 +169,7 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
                                   ],
                                 ),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 4,
-                                  ),
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                   decoration: BoxDecoration(
                                     color: Colors.white.withOpacity(0.2),
                                     borderRadius: BorderRadius.circular(12),
@@ -193,7 +187,6 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          // Train Details
                           const Text(
                             'Train Details',
                             style: TextStyle(
@@ -228,7 +221,6 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          // Passengers
                           const Text(
                             'Passengers',
                             style: TextStyle(
@@ -258,11 +250,7 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
                                         padding: const EdgeInsets.symmetric(vertical: 4),
                                         child: Row(
                                           children: [
-                                            const Icon(
-                                              Icons.person,
-                                              size: 16,
-                                              color: Color(0xFF1E40AF),
-                                            ),
+                                            const Icon(Icons.person, size: 16, color: Color(0xFF1E40AF)),
                                             const SizedBox(width: 8),
                                             Expanded(
                                               child: Column(
@@ -326,13 +314,7 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 13,
-              color: Colors.grey[600],
-            ),
-          ),
+          Text(label, style: TextStyle(fontSize: 13, color: Colors.grey[600])),
           Text(
             value,
             style: TextStyle(
@@ -478,7 +460,6 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // PNR & Status
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -509,7 +490,6 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
               ],
             ),
             const SizedBox(height: 8),
-            // Train Details
             Row(
               children: [
                 Expanded(
@@ -560,7 +540,6 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen> {
               ],
             ),
             const SizedBox(height: 8),
-            // View Details Button
             SizedBox(
               width: double.infinity,
               height: 36,

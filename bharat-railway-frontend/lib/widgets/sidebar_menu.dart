@@ -4,13 +4,10 @@
  * Branch: feature/frontend-developer-chandrashekhar
  * Developer: Chandra Shekhar Bansal
  * Date: 2026-09-01
- * Version: 1.0.0
+ * Version: 2.0.0
  *
  * Description:
- * Premium sidebar/drawer with user profile header, organized menu items.
- * Displays logged‑in user's full name and email (if available).
- * PNR Status and Booking History are now functional.
- * Added Profile link in sidebar.
+ * Production-ready sidebar menu with profile header and all navigation.
  */
 
 import 'dart:convert';
@@ -18,7 +15,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
-import '../themes/app_theme.dart';
 import '../routes/app_routes.dart';
 import '../screens/search/train_search_screen.dart';
 import '../screens/booking/pnr_status_screen.dart';
@@ -40,41 +36,13 @@ class SidebarMenu extends StatelessWidget {
       final payload = jsonDecode(
         utf8.decode(base64Url.decode(base64Url.normalize(parts[1]))),
       );
-
-      // 🔍 Print decoded payload to console
-      print(payload);
-
-      final nameKeys = [
-        'fullName',
-        'full_name',
-        'displayName',
-        'display_name',
-        'name',
-        'userFullName',
-        'user_full_name',
-        'preferred_username',
-        'given_name',
-        'family_name',
-      ];
-
-      String name = '';
-      for (var key in nameKeys) {
-        if (payload.containsKey(key) && payload[key] is String) {
-          final value = payload[key] as String;
-          if (value.trim().isNotEmpty) {
-            if (value.contains(' ')) {
-              name = value;
-              break;
-            }
-            if (name.isEmpty) name = value;
-          }
-        }
-      }
-
-      if (name.isEmpty) name = payload['sub'] ?? 'User';
-
-      final email = payload['email'] ?? payload['Email'] ?? payload['mail'] ?? '';
-
+      final name = payload['fullName'] ??
+                     payload['full_name'] ??
+                     payload['name'] ??
+                     payload['preferred_username'] ??
+                     payload['username'] ??
+                     'User';
+      final email = payload['email'] ?? '';
       return {'name': name, 'email': email};
     } catch (_) {
       return {'name': 'User', 'email': ''};
@@ -96,195 +64,221 @@ class SidebarMenu extends StatelessWidget {
         .join();
 
     return Drawer(
-      width: 280,
+      width: 290,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
-          topRight: Radius.circular(16),
-          bottomRight: Radius.circular(16),
+          topRight: Radius.circular(20),
+          bottomRight: Radius.circular(20),
         ),
       ),
-      child: Container(
-        color: Colors.white,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // User Profile Header
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(20, 32, 20, 24),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF1E40AF), Color(0xFF3B82F6)],
-                ),
-                borderRadius: const BorderRadius.only(
-                  topRight: Radius.circular(16),
-                ),
+      child: Column(
+        children: [
+          // Profile Header
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(20, 40, 20, 24),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF1E40AF), Color(0xFF3B82F6)],
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 28,
-                        backgroundColor: Colors.white,
-                        child: Text(
-                          initials.isNotEmpty ? initials : 'U',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E40AF),
-                          ),
+              borderRadius: BorderRadius.only(
+                topRight: Radius.circular(20),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 32,
+                      backgroundColor: Colors.white,
+                      child: Text(
+                        initials.isNotEmpty ? initials : 'U',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E40AF),
                         ),
                       ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            fullName,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          if (email.isNotEmpty)
                             Text(
-                              fullName,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
+                              email,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.white.withOpacity(0.7),
                               ),
+                              maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                            if (email.isNotEmpty)
-                              Text(
-                                email,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.white.withOpacity(0.7),
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                          ],
-                        ),
+                        ],
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.close, color: Colors.white),
-                        onPressed: onClose,
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-            // Menu Items
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                children: [
-                  _buildSectionTitle('MAIN'),
-                  _buildMenuItem(
-                    icon: Icons.home_outlined,
-                    title: 'Home',
-                    onTap: () {
-                      onClose();
-                      Navigator.pushReplacementNamed(context, AppRoutes.home);
-                    },
-                  ),
-                  _buildMenuItem(
-                    icon: Icons.person_outline,
-                    title: 'My Profile',
-                    onTap: () {
-                      onClose();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ProfileScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  _buildMenuItem(
-                    icon: Icons.confirmation_number_outlined,
-                    title: 'Book Ticket',
-                    onTap: () {
-                      onClose();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const TrainSearchScreen(),
-                        ),
-                      );
-                    },
-                    isActive: true,
-                  ),
-                  const Divider(height: 24, thickness: 1, indent: 16, endIndent: 16),
-                  _buildSectionTitle('SERVICES'),
-                  _buildMenuItem(
-                    icon: Icons.receipt_long_outlined,
-                    title: 'PNR Status',
-                    onTap: () {
-                      onClose();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const PnrStatusScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  _buildMenuItem(
-                    icon: Icons.schedule_outlined,
-                    title: 'Train Schedule',
-                    onTap: () {
-                      onClose();
-                      _showComingSoon(context);
-                    },
-                  ),
-                  _buildMenuItem(
-                    icon: Icons.history_outlined,
-                    title: 'Booking History',
-                    onTap: () {
-                      onClose();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const BookingHistoryScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  const Divider(height: 24, thickness: 1, indent: 16, endIndent: 16),
-                  _buildMenuItem(
-                    icon: Icons.logout_outlined,
-                    title: 'Logout',
-                    color: Colors.red,
-                    onTap: () async {
-                      onClose();
-                      final authProvider = context.read<AuthProvider>();
-                      await authProvider.logout();
-                      if (context.mounted) {
-                        Navigator.pushReplacementNamed(context, AppRoutes.login);
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ),
-            // Version footer
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                'v1.0.0',
-                style: TextStyle(
-                  color: Colors.grey[400],
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Colors.white),
+                      onPressed: onClose,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
                 ),
-              ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Text(
+                    'Welcome Back!',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 11,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 8),
+          // Menu Items
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              children: [
+                _buildMenuItem(
+                  icon: Icons.home_outlined,
+                  title: 'Home',
+                  onTap: () {
+                    onClose();
+                    Navigator.pushReplacementNamed(context, AppRoutes.home);
+                  },
+                ),
+                _buildMenuItem(
+                  icon: Icons.train_outlined,
+                  title: 'Book Ticket',
+                  onTap: () {
+                    onClose();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const TrainSearchScreen(),
+                      ),
+                    );
+                  },
+                  isActive: true,
+                ),
+                const Divider(height: 24, thickness: 1, indent: 16, endIndent: 16),
+                _buildSectionTitle('SERVICES'),
+                _buildMenuItem(
+                  icon: Icons.receipt_long_outlined,
+                  title: 'PNR Status',
+                  onTap: () {
+                    onClose();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const PnrStatusScreen(),
+                      ),
+                    );
+                  },
+                ),
+                _buildMenuItem(
+                  icon: Icons.history_outlined,
+                  title: 'Booking History',
+                  onTap: () {
+                    onClose();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const BookingHistoryScreen(),
+                      ),
+                    );
+                  },
+                ),
+                _buildMenuItem(
+                  icon: Icons.person_outline,
+                  title: 'My Profile',
+                  onTap: () {
+                    onClose();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ProfileScreen(),
+                      ),
+                    );
+                  },
+                ),
+                const Divider(height: 24, thickness: 1, indent: 16, endIndent: 16),
+                _buildMenuItem(
+                  icon: Icons.logout_outlined,
+                  title: 'Logout',
+                  color: Colors.red,
+                  onTap: () async {
+                    onClose();
+                    final authProvider = context.read<AuthProvider>();
+                    await authProvider.logout();
+                    if (context.mounted) {
+                      Navigator.pushReplacementNamed(context, AppRoutes.login);
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+          // Version
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Text(
+                  'v2.0.0',
+                  style: TextStyle(
+                    color: Colors.grey[400],
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const Spacer(),
+                Container(
+                  width: 4,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.green,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                const Text(
+                  'Production',
+                  style: TextStyle(
+                    color: Colors.green,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -339,18 +333,6 @@ class SidebarMenu extends StatelessWidget {
       tileColor: isActive ? const Color(0xFF1E40AF).withOpacity(0.05) : null,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
-      ),
-    );
-  }
-
-  void _showComingSoon(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('This feature is coming soon!'),
-        backgroundColor: Colors.grey[700],
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        duration: const Duration(seconds: 2),
       ),
     );
   }

@@ -36,3 +36,62 @@ INSERT INTO train_master_schema.routes (train_number, station_code, sequence_num
 ('12260','DHN',3,'09:00','09:10',10,1173,2,true,false,false,true,60,20),
 ('12260','SDAH',4,'13:00',NULL,0,1453,2,true,false,true,true,0,0)
 ON CONFLICT DO NOTHING;
+
+/*
+=============================================================================
+DUMMY / DEMO DATA - MISSING ROUTE FIX (batch 2, continued)
+Same purpose as the block added to 12_fix_routes.sql: these trains existed
+in train_master_schema.trains with no route rows at all. Filling them in
+here so every already-defined train is actually searchable/bookable.
+=============================================================================
+*/
+
+INSERT INTO train_master_schema.routes (train_number, station_code, sequence_number, arrival_time, departure_time, halt_duration, distance_from_origin, day_number, is_commercial_stop, is_originating_station, is_terminating_station, is_major_junction, booking_quota, waiting_list_quota) VALUES
+('12437', 'SC', 1, NULL, '19:49', 0, 0, 1, TRUE, TRUE, FALSE, TRUE, 60, 20),
+('12437', 'BPL', 2, '03:28', '03:33', 5, 651, 2, TRUE, FALSE, FALSE, TRUE, 60, 20),
+('12437', 'NZM', 3, '15:32', NULL, 0, 1670, 2, TRUE, FALSE, TRUE, TRUE, 0, 0),
+('12438', 'NZM', 1, NULL, '20:06', 0, 0, 1, TRUE, TRUE, FALSE, TRUE, 60, 20),
+('12438', 'BPL', 2, '06:48', '06:53', 5, 910, 2, TRUE, FALSE, FALSE, TRUE, 60, 20),
+('12438', 'SC', 3, '15:49', NULL, 0, 1670, 2, TRUE, FALSE, TRUE, TRUE, 0, 0),
+('12616', 'NDLS', 1, NULL, '22:32', 0, 0, 1, TRUE, TRUE, FALSE, TRUE, 60, 20),
+('12616', 'BPL', 2, '04:10', '04:15', 5, 395, 2, TRUE, FALSE, FALSE, TRUE, 60, 20),
+('12616', 'NGP', 3, '10:45', '10:55', 10, 850, 2, TRUE, FALSE, FALSE, TRUE, 60, 20),
+('12616', 'SC', 4, '17:00', '17:05', 5, 1276, 2, TRUE, FALSE, FALSE, TRUE, 60, 20),
+('12616', 'BZA', 5, '22:41', '22:51', 10, 1668, 2, TRUE, FALSE, FALSE, FALSE, 60, 20),
+('12616', 'MAS', 6, '06:11', NULL, 0, 2182, 3, TRUE, FALSE, TRUE, TRUE, 0, 0),
+('12304', 'NDLS', 1, NULL, '06:08', 0, 0, 1, TRUE, TRUE, FALSE, TRUE, 60, 20),
+('12304', 'CNB', 2, '13:12', '13:17', 5, 530, 1, TRUE, FALSE, FALSE, TRUE, 60, 20),
+('12304', 'GAYA', 3, '18:53', '19:03', 10, 950, 1, TRUE, FALSE, FALSE, TRUE, 60, 20),
+('12304', 'HWH', 4, '01:40', NULL, 0, 1447, 2, TRUE, FALSE, TRUE, TRUE, 0, 0),
+('12917', 'ADI', 1, NULL, '11:49', 0, 0, 1, TRUE, TRUE, FALSE, TRUE, 60, 20),
+('12917', 'JP', 2, '18:33', '18:38', 5, 472, 1, TRUE, FALSE, FALSE, TRUE, 60, 20),
+('12917', 'NZM', 3, '01:14', NULL, 0, 934, 2, TRUE, FALSE, TRUE, TRUE, 0, 0),
+('12472', 'JAT', 1, NULL, '05:44', 0, 0, 1, TRUE, TRUE, FALSE, TRUE, 60, 20),
+('12472', 'NDLS', 2, '16:28', '16:33', 5, 752, 1, TRUE, FALSE, FALSE, TRUE, 60, 20),
+('12472', 'BRC', 3, '01:09', '01:19', 10, 1355, 2, TRUE, FALSE, FALSE, TRUE, 60, 20),
+('12472', 'BDTS', 4, '10:53', NULL, 0, 2025, 2, TRUE, FALSE, TRUE, TRUE, 0, 0),
+('22435', 'SVDK', 1, NULL, '20:35', 0, 0, 1, TRUE, TRUE, FALSE, TRUE, 60, 20),
+('22435', 'JAT', 2, '23:41', '23:46', 5, 264, 1, TRUE, FALSE, FALSE, FALSE, 60, 20),
+('22435', 'NDLS', 3, '04:22', NULL, 0, 655, 2, TRUE, FALSE, TRUE, TRUE, 0, 0),
+('12309', 'RJPB', 1, NULL, '07:33', 0, 0, 1, TRUE, TRUE, FALSE, TRUE, 60, 20),
+('12309', 'GAYA', 2, '11:58', '12:03', 5, 376, 1, TRUE, FALSE, FALSE, TRUE, 60, 20),
+('12309', 'CNB', 3, '15:17', '15:27', 10, 651, 1, TRUE, FALSE, FALSE, TRUE, 60, 20),
+('12309', 'NDLS', 4, '19:33', NULL, 0, 1000, 1, TRUE, FALSE, TRUE, TRUE, 0, 0),
+('12954', 'BCT', 1, NULL, '22:18', 0, 0, 1, TRUE, TRUE, FALSE, TRUE, 60, 20),
+('12954', 'BRC', 2, '04:13', '04:18', 5, 533, 2, TRUE, FALSE, FALSE, TRUE, 60, 20),
+('12954', 'NZM', 3, '13:46', NULL, 0, 1386, 2, TRUE, FALSE, TRUE, TRUE, 0, 0),
+('12298', 'NDLS', 1, NULL, '04:26', 0, 0, 1, TRUE, TRUE, FALSE, TRUE, 60, 20),
+('12298', 'BPL', 2, '14:30', '14:35', 5, 857, 1, TRUE, FALSE, FALSE, TRUE, 60, 20),
+('12298', 'PUNE', 3, '22:19', NULL, 0, 1515, 1, TRUE, FALSE, TRUE, TRUE, 0, 0),
+('12307', 'HWH', 1, NULL, '06:59', 0, 0, 1, TRUE, TRUE, FALSE, TRUE, 60, 20),
+('12307', 'GAYA', 2, '16:41', '16:46', 5, 534, 1, TRUE, FALSE, FALSE, TRUE, 60, 20),
+('12307', 'CNB', 3, '00:11', '00:21', 10, 942, 2, TRUE, FALSE, FALSE, TRUE, 60, 20),
+('12307', 'JP', 4, '09:18', '09:23', 5, 1435, 2, TRUE, FALSE, FALSE, TRUE, 60, 20),
+('12307', 'JU', 5, '16:01', NULL, 0, 1800, 2, TRUE, FALSE, TRUE, TRUE, 0, 0),
+('12308', 'JU', 1, NULL, '07:16', 0, 0, 1, TRUE, TRUE, FALSE, TRUE, 60, 20),
+('12308', 'JP', 2, '15:45', '15:50', 5, 467, 1, TRUE, FALSE, FALSE, TRUE, 60, 20),
+('12308', 'CNB', 3, '23:50', '00:00', 10, 907, 1, TRUE, FALSE, FALSE, TRUE, 60, 20),
+('12308', 'GAYA', 4, '09:33', '09:38', 5, 1433, 2, TRUE, FALSE, FALSE, TRUE, 60, 20),
+('12308', 'HWH', 5, '16:18', NULL, 0, 1800, 2, TRUE, FALSE, TRUE, TRUE, 0, 0)
+ON CONFLICT DO NOTHING;
+

@@ -13,7 +13,7 @@
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 
 class PaymentService {
-  static const String razorpayKey = 'rzp_test_XXXXXXXXXXXXXXXX'; // Replace with your key
+  static const String razorpayKey = 'rzp_test_XXXXXXXXXXXXXXXX';
 
   static void openPayment({
     required int amount,

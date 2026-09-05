@@ -135,7 +135,8 @@ class PdfGenerator {
       ),
     );
 
-    final output = await getTemporaryDirectory();
+    // ✅ Use getApplicationDocumentsDirectory for better storage
+    final output = await getApplicationDocumentsDirectory();
     final file = File('${output.path}/ticket_$pnrNumber.pdf');
     await file.writeAsBytes(await pdf.save());
 

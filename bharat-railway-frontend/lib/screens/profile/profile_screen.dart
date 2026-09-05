@@ -8,16 +8,46 @@
  *
  * Description:
  * Profile management screen – view and update user profile.
+ * Fetches user data from JWT token and allows editing.
  */
 
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:dio/dio.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../themes/app_theme.dart';
 import '../../widgets/auth/auth_button.dart';
 import '../../widgets/auth/auth_text_field.dart';
+import '../../services/api/dio_client.dart';
+
+class ProfileService {
+  final Dio _dio = DioClient.instance;
+
+  Future<Map<String, dynamic>> updateProfile({
+    required String fullName,
+    required String email,
+    required String mobileNumber,
+  }) async {
+    try {
+      final response = await _dio.put(
+        '/api/v1/users/profile',
+        data: {
+          'fullName': fullName,
+          'email': email,
+          'mobileNumber': mobileNumber,
+        },
+      );
+      return response.data;
+    } on DioException catch (e) {
+      if (e.response != null) {
+        throw Exception(e.response?.data['message'] ?? 'Failed to update profile');
+      }
+      throw Exception('Network error. Please check your connection.');
+    }
+  }
+}
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -34,6 +64,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _usernameController = TextEditingController();
   bool _isEditing = false;
   bool _isLoading = false;
+  String? _error;
+
+  final ProfileService _profileService = ProfileService();
 
   @override
   void initState() {
@@ -65,24 +98,53 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _usernameController.text = payload['username'] ?? payload['sub'] ?? '';
           _mobileController.text = payload['mobileNumber'] ?? payload['phone'] ?? '';
         }
-      } catch (_) {}
+      } catch (_) {
+        // Ignore parse errors
+      }
     }
   }
 
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true);
-    await Future.delayed(const Duration(seconds: 1));
-    setState(() => _isLoading = false);
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Profile updated successfully!'),
-        backgroundColor: AppTheme.successColor,
-      ),
-    );
-    setState(() => _isEditing = false);
+    try {
+      await _profileService.updateProfile(
+        fullName: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+        mobileNumber: _mobileController.text.trim(),
+      );
+
+      // Update token with new data if needed
+      // For now, just show success
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profile updated successfully!'),
+            backgroundColor: AppTheme.successColor,
+          ),
+        );
+        setState(() => _isEditing = false);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _error = e.toString());
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_error!),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override
@@ -127,7 +189,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Form(
             key: _formKey,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                // Profile Avatar
                 Container(
                   width: 100,
                   height: 100,
@@ -154,6 +218,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 const SizedBox(height: 24),
 
+                // Full Name
                 AuthTextField(
                   controller: _nameController,
                   label: 'Full Name',
@@ -165,12 +230,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           if (value == null || value.isEmpty) {
                             return 'Please enter your full name';
                           }
+                          if (value.length < 2) {
+                            return 'Name must be at least 2 characters';
+                          }
                           return null;
                         }
                       : null,
                 ),
                 const SizedBox(height: 16),
 
+                // Email
                 AuthTextField(
                   controller: _emailController,
                   label: 'Email',
@@ -183,12 +252,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           if (value == null || value.isEmpty) {
                             return 'Please enter your email';
                           }
+                          if (!RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+                              .hasMatch(value)) {
+                            return 'Please enter a valid email';
+                          }
                           return null;
                         }
                       : null,
                 ),
                 const SizedBox(height: 16),
 
+                // Mobile Number
                 AuthTextField(
                   controller: _mobileController,
                   label: 'Mobile Number',
@@ -201,12 +275,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           if (value == null || value.isEmpty) {
                             return 'Please enter your mobile number';
                           }
+                          if (!RegExp(r'^[0-9]{10}$').hasMatch(value)) {
+                            return 'Please enter a valid 10-digit mobile number';
+                          }
                           return null;
                         }
                       : null,
                 ),
                 const SizedBox(height: 16),
 
+                // Username (read-only)
                 AuthTextField(
                   controller: _usernameController,
                   label: 'Username',
@@ -221,6 +299,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     onPressed: _saveProfile,
                     isLoading: _isLoading,
                     text: 'Save Profile',
+                  ),
+
+                if (_error != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 16),
+                    child: Text(
+                      _error!,
+                      style: const TextStyle(
+                        color: AppTheme.errorColor,
+                        fontSize: 14,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
                   ),
               ],
             ),

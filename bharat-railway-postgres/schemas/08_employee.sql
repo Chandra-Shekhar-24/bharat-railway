@@ -79,3 +79,42 @@ COMMENT ON TABLE employee_schema.employee_station_assignments IS 'Station assign
 
 CREATE INDEX idx_assignments_employee ON employee_schema.employee_station_assignments(employee_id);
 CREATE INDEX idx_assignments_station ON employee_schema.employee_station_assignments(station_code);
+
+/*
+=============================================================================
+DUMMY / DEMO DATA
+A handful of RBAC roles and admin-panel employees, so the (currently
+future) admin panel has something to show.
+=============================================================================
+*/
+
+INSERT INTO
+    employee_schema.employee_roles (
+        role_name, role_code, role_description, role_level, department,
+        is_system_role, is_station_scoped, is_active
+    )
+VALUES
+    ('Station Master','STN_MASTER','Manages day-to-day station operations',3,'OPERATIONS',TRUE,TRUE,TRUE),
+    ('Fare Analyst','FARE_ANALYST','Reviews and proposes fare changes',4,'FINANCE',FALSE,FALSE,TRUE),
+    ('Customer Support Agent','SUPPORT_AGENT','Handles passenger queries and refunds',5,'COMMERCIAL',FALSE,FALSE,TRUE),
+    ('IT Administrator','IT_ADMIN','Manages system configuration and access',2,'IT',TRUE,FALSE,TRUE),
+    ('Divisional Auditor','DIV_AUDITOR','Audits divisional financial records',3,'AUDIT',FALSE,FALSE,TRUE)
+ON CONFLICT (role_code) DO NOTHING;
+
+INSERT INTO
+    employee_schema.employees (
+        employee_code, first_name, last_name, email, mobile_number,
+        designation, department, zone, division, joining_date,
+        employment_status, admin_access_status
+    )
+VALUES
+    ('EMP2001', 'Sunita', 'Mishra', 'sunita.mishra@bharatrailway.gov.in', '8437925810', 'Station Superintendent', 'OPERATIONS', 'Southern Railway', 'Southern Division', '2018-06-01', 'ACTIVE', 'ACTIVE'),
+    ('EMP2002', 'Vikram', 'Tiwari', 'vikram.tiwari@bharatrailway.gov.in', '8404208382', 'Fare Analyst', 'FINANCE', 'Northern Railway', 'Northern Division', '2018-06-01', 'ACTIVE', 'ACTIVE'),
+    ('EMP2003', 'Anita', 'Agarwal', 'anita.agarwal@bharatrailway.gov.in', '8530093452', 'Customer Support Agent', 'COMMERCIAL', 'Northern Railway', 'Northern Division', '2018-06-01', 'ACTIVE', 'ACTIVE'),
+    ('EMP2004', 'Manoj', 'Saxena', 'manoj.saxena@bharatrailway.gov.in', '8837763017', 'System Administrator', 'IT', 'Western Railway', 'Western Division', '2018-06-01', 'ACTIVE', 'ACTIVE'),
+    ('EMP2005', 'Geeta', 'Bhatt', 'geeta.bhatt@bharatrailway.gov.in', '8236195781', 'Divisional Auditor', 'AUDIT', 'Southern Railway', 'Southern Division', '2018-06-01', 'ACTIVE', 'ACTIVE'),
+    ('EMP2006', 'Sanjay', 'Rana', 'sanjay.rana@bharatrailway.gov.in', '8168675663', 'Office Superintendent', 'ADMINISTRATION', 'Northern Railway', 'Northern Division', '2018-06-01', 'ACTIVE', 'ACTIVE'),
+    ('EMP2007', 'Kiran', 'Chopra', 'kiran.chopra@bharatrailway.gov.in', '8133263164', 'Traffic Inspector', 'OPERATIONS', 'Eastern Railway', 'Eastern Division', '2018-06-01', 'ACTIVE', 'ACTIVE'),
+    ('EMP2008', 'Arvind', 'Dubey', 'arvind.dubey@bharatrailway.gov.in', '8108139664', 'Accounts Officer', 'FINANCE', 'Northern Railway', 'Northern Division', '2018-06-01', 'ACTIVE', 'ACTIVE')
+ON CONFLICT (employee_code) DO NOTHING;
+

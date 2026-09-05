@@ -4,10 +4,10 @@
  * Branch: feature/frontend-developer-chandrashekhar
  * Developer: Chandra Shekhar Bansal
  * Date: 2026-09-01
- * Version: 1.0.0
+ * Version: 2.0.0
  *
  * Description:
- * Booking confirmation screen with PNR, details, payment, download, share.
+ * Production-ready booking confirmation screen.
  */
 
 import 'package:flutter/material.dart';
@@ -16,7 +16,7 @@ import '../../models/booking_response.dart';
 import '../../themes/app_theme.dart';
 import '../../routes/app_routes.dart';
 import '../../utils/pdf_generator.dart';
-import '../../services/api/payment_service.dart';
+import 'payment_screen.dart';
 
 class BookingConfirmationScreen extends StatelessWidget {
   final BookingResponse bookingResponse;
@@ -36,6 +36,24 @@ class BookingConfirmationScreen extends StatelessWidget {
     required this.arrivalTime,
   });
 
+  void _showSnackBar(BuildContext context, String message, {bool isSuccess = true}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(isSuccess ? Icons.check_circle : Icons.error, color: Colors.white),
+            const SizedBox(width: 12),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: isSuccess ? const Color(0xFF059669) : const Color(0xFFDC2626),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
   void _downloadTicket(BuildContext context) async {
     try {
       final file = await PdfGenerator.generateTicket(
@@ -54,21 +72,10 @@ class BookingConfirmationScreen extends StatelessWidget {
         bookingStatus: bookingResponse.bookingStatus,
         totalFare: bookingResponse.totalFare,
       );
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('✅ PDF saved at: ${file.path}'),
-          backgroundColor: AppTheme.successColor,
-        ),
-      );
+      _showSnackBar(context, '✅ Ticket downloaded: ${file.path}');
       await PdfGenerator.shareTicket(file);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('❌ Error: $e'),
-          backgroundColor: AppTheme.errorColor,
-        ),
-      );
+      _showSnackBar(context, '❌ Error: $e', isSuccess: false);
     }
   }
 
@@ -91,20 +98,19 @@ class BookingConfirmationScreen extends StatelessWidget {
         totalFare: bookingResponse.totalFare,
       );
       await PdfGenerator.shareTicket(file);
+      _showSnackBar(context, '✅ Ticket shared successfully!');
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('❌ Error sharing: $e'),
-          backgroundColor: AppTheme.errorColor,
-        ),
-      );
+      _showSnackBar(context, '❌ Error sharing: $e', isSuccess: false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isConfirmed = bookingResponse.bookingStatus == 'CONFIRMED';
+    final isPending = bookingResponse.bookingStatus == 'PENDING';
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF0F4F8),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1E40AF),
         elevation: 0,
@@ -131,73 +137,50 @@ class BookingConfirmationScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Success Header
               Container(
-                padding: const EdgeInsets.all(20),
-                decoration: const BoxDecoration(
-                  color: Color(0xFF059669),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.check, color: Colors.white, size: 48),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Booking Confirmed!',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF111827),
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Your ticket has been booked successfully',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-              ),
-              const SizedBox(height: 24),
-              Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [Color(0xFF1E40AF), Color(0xFF3B82F6)],
+                    colors: [Color(0xFF059669), Color(0xFF34D399)],
                   ),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Column(
                   children: [
+                    const Icon(Icons.check_circle, color: Colors.white, size: 64),
+                    const SizedBox(height: 8),
                     const Text(
-                      'PNR NUMBER',
+                      'Booking Confirmed!',
                       style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.white70,
-                        letterSpacing: 1,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      bookingResponse.pnrNumber,
+                      'PNR: ${bookingResponse.pnrNumber}',
                       style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        letterSpacing: 2,
+                        fontSize: 16,
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        'Status: ${bookingResponse.bookingStatus}',
+                        bookingResponse.bookingStatus,
                         style: const TextStyle(
                           color: Colors.white,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w600,
                           fontSize: 12,
                         ),
                       ),
@@ -205,25 +188,33 @@ class BookingConfirmationScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
-              const Text(
-                'Booking Details',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF111827),
-                ),
-              ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
+              // Booking Details Card
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.grey[50],
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey[200]!),
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 12,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    const Text(
+                      'Booking Details',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF111827),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
                     _buildDetailRow('Train', '$trainName (${bookingResponse.trainNumber})'),
                     _buildDetailRow('Journey Date', bookingResponse.journeyDate),
                     _buildDetailRow('From', origin),
@@ -238,53 +229,40 @@ class BookingConfirmationScreen extends StatelessWidget {
                           ? const Color(0xFF059669)
                           : const Color(0xFFF59E0B),
                     ),
-                    if (bookingResponse.paymentStatus == 'PENDING')
+                    if (isPending)
                       Padding(
-                        padding: const EdgeInsets.only(top: 8),
+                        padding: const EdgeInsets.only(top: 12),
                         child: SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
                             onPressed: () {
-                              PaymentService.openPayment(
-                                amount: bookingResponse.totalFare.toInt(),
-                                name: 'Bharat Railway User',
-                                email: 'user@example.com',
-                                contact: '9876543210',
-                                description: 'Booking: ${bookingResponse.pnrNumber}',
-                                onSuccess: (paymentId, signature) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('✅ Payment successful! ID: $paymentId'),
-                                      backgroundColor: AppTheme.successColor,
-                                    ),
-                                  );
-                                },
-                                onError: (code, message) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('❌ Payment failed: $message'),
-                                      backgroundColor: AppTheme.errorColor,
-                                    ),
-                                  );
-                                },
-                                onExternal: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('External wallet selected'),
-                                      backgroundColor: Colors.grey,
-                                    ),
-                                  );
-                                },
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => PaymentScreen(
+                                    bookingId: bookingResponse.bookingId,
+                                    amount: bookingResponse.totalFare,
+                                    pnrNumber: bookingResponse.pnrNumber,
+                                  ),
+                                ),
                               );
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFFF59E0B),
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(10),
                               ),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
                             ),
-                            child: const Text('Complete Payment'),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.payment, color: Colors.white),
+                                SizedBox(width: 8),
+                                Text('Complete Payment'),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -292,33 +270,7 @@ class BookingConfirmationScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
-                'Passengers',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF111827),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.grey[50],
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey[200]!),
-                ),
-                child: const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Text(
-                      'Passenger details will be displayed here',
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
+              // Action Buttons
               Row(
                 children: [
                   Expanded(
@@ -390,16 +342,23 @@ class BookingConfirmationScreen extends StatelessWidget {
 
   Widget _buildDetailRow(String label, String value, {Color? valueColor}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w500,
+            ),
+          ),
           Text(
             value,
             style: TextStyle(
               fontSize: 14,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w600,
               color: valueColor ?? const Color(0xFF111827),
             ),
           ),

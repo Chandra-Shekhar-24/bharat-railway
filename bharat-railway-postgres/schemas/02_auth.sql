@@ -125,3 +125,36 @@ COMMENT ON COLUMN auth_schema.password_reset.reset_channel IS 'Delivery method: 
 COMMENT ON COLUMN auth_schema.password_reset.is_used IS 'TRUE once token consumed, prevents reuse';
 COMMENT ON COLUMN auth_schema.password_reset.created_at IS 'Token creation timestamp';
 COMMENT ON COLUMN auth_schema.password_reset.expires_at IS 'Token expiry timestamp';
+
+/*
+=============================================================================
+DUMMY / DEMO DATA
+Sample login history for the demo passengers added in 01_identity.sql.
+Purely additive - no schema/constraint changes.
+=============================================================================
+*/
+
+INSERT INTO
+    auth_schema.login_history (
+        user_id, ip_address, user_agent, geo_location, login_method, status, failure_reason
+    )
+VALUES
+    ((SELECT user_id FROM identity_schema.users WHERE username = 'sureshchatterjee03'), '103.67.30.202', 'Mozilla/5.0 (Demo Client)', 'India', 'otp_sms', 0, 'OTP expired'),
+    ((SELECT user_id FROM identity_schema.users WHERE username = 'manojdesai19'), '103.19.38.13', 'Mozilla/5.0 (Demo Client)', 'India', 'otp_sms', 1, NULL),
+    ((SELECT user_id FROM identity_schema.users WHERE username = 'aaraviyer01'), '103.204.33.83', 'Mozilla/5.0 (Demo Client)', 'India', 'password', 1, NULL),
+    ((SELECT user_id FROM identity_schema.users WHERE username = 'ananyapatel02'), '103.115.182.170', 'Mozilla/5.0 (Demo Client)', 'India', 'otp_email', 1, NULL),
+    ((SELECT user_id FROM identity_schema.users WHERE username = 'vihaangupta14'), '103.61.130.182', 'Mozilla/5.0 (Demo Client)', 'India', 'password', 0, 'Account locked'),
+    ((SELECT user_id FROM identity_schema.users WHERE username = 'karanchauhan13'), '103.70.183.163', 'Mozilla/5.0 (Demo Client)', 'India', 'otp_email', 1, NULL),
+    ((SELECT user_id FROM identity_schema.users WHERE username = 'neharao10'), '103.3.228.122', 'Mozilla/5.0 (Demo Client)', 'India', 'otp_email', 1, NULL),
+    ((SELECT user_id FROM identity_schema.users WHERE username = 'kabirmalhotra11'), '103.92.233.25', 'Mozilla/5.0 (Demo Client)', 'India', 'password', 0, 'OTP expired'),
+    ((SELECT user_id FROM identity_schema.users WHERE username = 'rohansharma20'), '103.86.39.225', 'Mozilla/5.0 (Demo Client)', 'India', 'otp_sms', 1, NULL),
+    ((SELECT user_id FROM identity_schema.users WHERE username = 'vivaanjoshi04'), '103.178.166.7', 'Mozilla/5.0 (Demo Client)', 'India', 'password', 1, NULL),
+    ((SELECT user_id FROM identity_schema.users WHERE username = 'myrasingh09'), '103.199.29.15', 'Mozilla/5.0 (Demo Client)', 'India', 'otp_email', 1, NULL),
+    ((SELECT user_id FROM identity_schema.users WHERE username = 'snehabansal18'), '103.58.160.163', 'Mozilla/5.0 (Demo Client)', 'India', 'otp_email', 1, NULL),
+    ((SELECT user_id FROM identity_schema.users WHERE username = 'reyanshkapoor25'), '103.20.78.96', 'Mozilla/5.0 (Demo Client)', 'India', 'otp_sms', 1, NULL),
+    ((SELECT user_id FROM identity_schema.users WHERE username = 'poojanair08'), '103.191.36.26', 'Mozilla/5.0 (Demo Client)', 'India', 'password', 1, NULL),
+    ((SELECT user_id FROM identity_schema.users WHERE username = 'arjunpatel22'), '103.192.140.243', 'Mozilla/5.0 (Demo Client)', 'India', 'password', 1, NULL),
+    ((SELECT user_id FROM identity_schema.users WHERE username = 'aadhyaverma07'), '103.101.143.125', 'Mozilla/5.0 (Demo Client)', 'India', 'otp_email', 1, NULL),
+    ((SELECT user_id FROM identity_schema.users WHERE username = 'diyamehta12'), '103.7.65.144', 'Mozilla/5.0 (Demo Client)', 'India', 'password', 1, NULL),
+    ((SELECT user_id FROM identity_schema.users WHERE username = 'amitkumar16'), '103.166.13.101', 'Mozilla/5.0 (Demo Client)', 'India', 'otp_email', 1, NULL);
+

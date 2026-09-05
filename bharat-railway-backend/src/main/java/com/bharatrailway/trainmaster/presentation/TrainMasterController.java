@@ -4,12 +4,12 @@
  * Branch: feature/backend-developer-hitanshu
  * Developer: Chandra Shekhar Bansal
  * Assisted by: DeepSeek (AI Scribe)
- * Date: 2026-08-31
+ * Date: 2026-09-02
  * Version: 0.1.0-SNAPSHOT
  *
  * Description:
  * REST controller for Train Master domain.
- * Provides endpoints for stations, trains, routes, coach composition, and seats.
+ * Enhanced train search response with departure/arrival, duration, fare, and seats.
  */
 
 package com.bharatrailway.trainmaster.presentation;
@@ -31,6 +31,7 @@ import com.bharatrailway.trainmaster.application.dto.SeatRequest;
 import com.bharatrailway.trainmaster.application.dto.StationRequest;
 import com.bharatrailway.trainmaster.application.dto.TrainCoachCompositionRequest;
 import com.bharatrailway.trainmaster.application.dto.TrainRequest;
+import com.bharatrailway.trainmaster.application.dto.TrainSearchResponse;
 import com.bharatrailway.trainmaster.application.service.TrainMasterService;
 import com.bharatrailway.trainmaster.domain.Route;
 import com.bharatrailway.trainmaster.domain.Seat;
@@ -97,9 +98,10 @@ public class TrainMasterController {
     }
 
     @GetMapping("/trains/search")
-    public ResponseEntity<List<Train>> searchTrains(@RequestParam String origin,
-                                                     @RequestParam String destination) {
-        return ResponseEntity.ok(trainMasterService.getTrainsByRoute(origin, destination));
+    public ResponseEntity<List<TrainSearchResponse>> searchTrains(
+            @RequestParam String origin,
+            @RequestParam String destination) {
+        return ResponseEntity.ok(trainMasterService.searchTrains(origin, destination));
     }
 
     // ========== ROUTE ENDPOINTS ==========

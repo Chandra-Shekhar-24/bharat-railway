@@ -4,12 +4,13 @@
  * Branch: feature/backend-developer-hitanshu
  * Developer: Chandra Shekhar Bansal
  * Assisted by: DeepSeek (AI Scribe)
- * Date: 2026-09-01
+ * Date: 2026-09-05
  * Version: 0.1.0-SNAPSHOT
  *
  * Description:
  * Application service for Payment domain.
- * Handles payment initiation, status update, and refund processing.
+ * Handles payment initiation, status update, refund processing,
+ * and Razorpay webhook processing with atomic transactions.
  */
 
 package com.bharatrailway.payment.application.service;
@@ -49,7 +50,7 @@ public class PaymentService {
         transaction.setPaymentMethod(paymentMethod);
         transaction.setTransactionStatus("PENDING");
         transaction.setGatewayReference(UUID.randomUUID().toString());
-        transaction.setPaymentGateway("MOCK_GATEWAY");
+        transaction.setPaymentGateway("RAZORPAY");
         transaction.setCreatedAt(OffsetDateTime.now());
         transaction.setUpdatedAt(OffsetDateTime.now());
 
@@ -69,6 +70,35 @@ public class PaymentService {
         transaction.setUpdatedAt(OffsetDateTime.now());
 
         return paymentTransactionRepository.save(transaction);
+    }
+
+    @Transactional
+    public void processPaymentSuccess(String orderId, String paymentId, String status) {
+        PaymentTransaction transaction = paymentTransactionRepository
+                .findByGatewayReference(orderId)
+                .orElseThrow(() -> new RuntimeException("Transaction not found for order: " + orderId));
+
+        // Idempotency check - already processed
+        if ("SUCCESS".equals(transaction.getTransactionStatus())) {
+            return;
+        }
+
+        transaction.setTransactionStatus("SUCCESS");
+        transaction.setGatewayReference(paymentId);
+        transaction.setUpdatedAt(OffsetDateTime.now());
+        paymentTransactionRepository.save(transaction);
+    }
+
+    @Transactional
+    public void processPaymentFailure(String orderId, String paymentId) {
+        PaymentTransaction transaction = paymentTransactionRepository
+                .findByGatewayReference(orderId)
+                .orElseThrow(() -> new RuntimeException("Transaction not found for order: " + orderId));
+
+        transaction.setTransactionStatus("FAILED");
+        transaction.setGatewayReference(paymentId);
+        transaction.setUpdatedAt(OffsetDateTime.now());
+        paymentTransactionRepository.save(transaction);
     }
 
     public PaymentTransaction getPaymentByBooking(Integer bookingId) {
